@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme.dart';
 import '../widgets/glass_card.dart';
@@ -64,11 +65,24 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Future<void> _openLink(String url) async {
-    if (url.startsWith('/')) return;
+    // Internal in-app destinations (e.g. the bundled PYQ archive) are routed
+    // natively instead of being treated as web links.
+    if (url == '/archive') {
+      Navigator.pushNamed(context, '/archive');
+      return;
+    }
     final uri = Uri.tryParse(url);
-    if (uri == null) return;
+    if (uri == null || !uri.hasScheme) {
+      if (mounted) {
+        setState(() => _errorMessage = 'This link is not valid.');
+      }
+      return;
+    }
     try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        setState(() => _errorMessage = 'Could not open link.');
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = 'Could not open link: $e');
@@ -99,6 +113,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
       type: _selectedType,
     );
 
+    HapticFeedback.lightImpact();
     setState(() {
       _resources.add(newResource);
     });
@@ -207,15 +222,20 @@ class _ResourcesPageState extends State<ResourcesPage> {
         ),
       );
     }
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 64),
-          _buildPageHeader(),
-          const SizedBox(height: 32),
-          _buildLayout(filtered),
-          const ScholarFooter(),
-        ],
+    return RefreshIndicator(
+      color: ScholarColors.accent,
+      onRefresh: _loadResources,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            const SizedBox(height: 24),
+            _buildPageHeader(),
+            const SizedBox(height: 32),
+            _buildLayout(filtered),
+            const ScholarFooter(),
+          ],
+        ),
       ),
     );
   }
@@ -297,9 +317,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
           const SizedBox(height: 16),
           _buildFormField('URL (Link)', _urlController, hint: 'https://...'),
           const SizedBox(height: 16),
-          _buildDropdown('Subject', ['Physics', 'Chemistry', 'Mathematics', 'English', 'IT', 'Sanskrit', 'General'], (v) => _selectedSubject = v!),
+          _buildDropdown('Subject', ['Physics', 'Chemistry', 'Mathematics', 'English', 'IT', 'Sanskrit', 'General'], _selectedSubject, (v) => setState(() => _selectedSubject = v!)),
           const SizedBox(height: 16),
-          _buildDropdown('Format', ['Video', 'PDF', 'Website'], (v) => _selectedType = v!),
+          _buildDropdown('Format', ['Video', 'PDF', 'Website'], _selectedType, (v) => setState(() => _selectedType = v!)),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
@@ -368,14 +388,14 @@ class _ResourcesPageState extends State<ResourcesPage> {
     );
   }
 
-  Widget _buildDropdown(String label, List<String> options, ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(String label, List<String> options, String currentValue, ValueChanged<String?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: ScholarColors.textMuted)),
         const SizedBox(height: 4),
         DropdownButtonFormField<String>(
-          value: options.first,
+          value: currentValue,
           items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
@@ -450,7 +470,10 @@ class _ResourcesPageState extends State<ResourcesPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                       ),
-                      child: Text('Open Link', style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
+                      child: Text(
+                        r.url == '/archive' ? 'Open Archive' : 'Open Link',
+                        style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5),
+                      ),
                     ),
                     GestureDetector(
                       onTap: () => _deleteResource(r.id),

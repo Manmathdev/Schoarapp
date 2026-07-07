@@ -68,7 +68,15 @@ class DataService {
       final raw = prefs.getString(_keyDailyTasks);
       if (raw == null) return List.generate(5, (_) => const DailyTaskItem());
       final List<dynamic> jsonList = jsonDecode(raw);
-      return jsonList.map((j) => DailyTaskItem.fromJson(j as Map<String, dynamic>)).toList();
+      final tasks = jsonList.map((j) => DailyTaskItem.fromJson(j as Map<String, dynamic>)).toList();
+      // Always guarantee exactly 5 slots, regardless of what was persisted,
+      // since the dashboard UI assumes a fixed 5-item layout.
+      if (tasks.length < 5) {
+        tasks.addAll(List.generate(5 - tasks.length, (_) => const DailyTaskItem()));
+      } else if (tasks.length > 5) {
+        return tasks.sublist(0, 5);
+      }
+      return tasks;
     } catch (e) {
       return List.generate(5, (_) => const DailyTaskItem());
     }
@@ -169,7 +177,7 @@ class DataService {
   static List<Resource> getDefaultResources() {
     return [
       Resource(id: 1, title: 'CHSE Odisha Official Website', url: 'https://chseodisha.nic.in', subject: 'General', type: 'Website'),
-      Resource(id: 2, title: 'CHSE Odisha PYQs (PDFs)', url: '/archive.html', subject: 'General', type: 'PDF'),
+      Resource(id: 2, title: 'CHSE Odisha PYQs (PDFs)', url: '/archive', subject: 'General', type: 'PDF'),
       Resource(id: 3, title: 'NCERT Official Textbooks (PDFs)', url: 'https://ncert.nic.in/textbook.php', subject: 'General', type: 'PDF'),
     ];
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
@@ -21,10 +22,31 @@ class _CurriculumPageState extends State<CurriculumPage> {
   late List<Task> _tasks;
   String _currentFilter = 'all';
 
+  // Persistent per-task controllers, keyed by task id, so rebuilds (from
+  // status changes, filter changes, etc.) don't reset cursor position or
+  // interrupt typing in the notes field.
+  final Map<int, TextEditingController> _notesControllers = {};
+
+  TextEditingController _notesControllerFor(Task task) {
+    final existing = _notesControllers[task.id];
+    if (existing != null) return existing;
+    final controller = TextEditingController(text: task.notes);
+    _notesControllers[task.id] = controller;
+    return controller;
+  }
+
   @override
   void initState() {
     super.initState();
     _loadTasks();
+  }
+
+  @override
+  void dispose() {
+    for (final c in _notesControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadTasks() async {
@@ -53,6 +75,7 @@ class _CurriculumPageState extends State<CurriculumPage> {
   void _cycleStatus(int taskId) async {
     final idx = _tasks.indexWhere((t) => t.id == taskId);
     if (idx == -1) return;
+    HapticFeedback.selectionClick();
     setState(() {
       _tasks[idx].status = _cycleStatusHelper(_tasks[idx].status);
     });
@@ -92,6 +115,10 @@ class _CurriculumPageState extends State<CurriculumPage> {
               try {
                 await _dataService.resetCurriculum();
                 final tasks = await _dataService.getTasks();
+                for (final c in _notesControllers.values) {
+                  c.dispose();
+                }
+                _notesControllers.clear();
                 setState(() {
                   _tasks = tasks;
                   _isLoading = false;
@@ -188,15 +215,20 @@ class _CurriculumPageState extends State<CurriculumPage> {
         ),
       );
     }
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 64),
-          _buildPageHeader(title, subtitle),
-          const SizedBox(height: 32),
-          _buildLayout(filtered),
-          const ScholarFooter(),
-        ],
+    return RefreshIndicator(
+      color: ScholarColors.accent,
+      onRefresh: _loadTasks,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            const SizedBox(height: 24),
+            _buildPageHeader(title, subtitle),
+            const SizedBox(height: 32),
+            _buildLayout(filtered),
+            const ScholarFooter(),
+          ],
+        ),
       ),
     );
   }
@@ -348,15 +380,13 @@ class _CurriculumPageState extends State<CurriculumPage> {
                     children: [
                       Text(task.subject.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: task.color)),
                       const SizedBox(height: 4),
-                      TextField(
-                        controller: TextEditingController.fromValue(TextEditingValue(text: task.title)),
-                        readOnly: true,
+                      Text(
+                        task.title,
                         style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600),
-                        decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
                       ),
                       const SizedBox(height: 8),
                       TextField(
-                        controller: TextEditingController.fromValue(TextEditingValue(text: task.notes)),
+                        controller: _notesControllerFor(task),
                         onChanged: (v) => _saveNotes(task.id, v),
                         maxLines: 3,
                         style: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textSecondary, height: 1.5),

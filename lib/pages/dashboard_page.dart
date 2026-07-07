@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
@@ -22,10 +23,21 @@ class _DashboardPageState extends State<DashboardPage> {
   int _remainingChapters = 0;
   int _daysUntilExam = 0;
 
+  final List<TextEditingController> _controllers =
+      List.generate(5, (_) => TextEditingController());
+
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -45,6 +57,9 @@ class _DashboardPageState extends State<DashboardPage> {
         _daysUntilExam = days;
         _isLoading = false;
       });
+      for (var i = 0; i < 5 && i < _dailyTasks.length; i++) {
+        _controllers[i].text = _dailyTasks[i].text;
+      }
     } catch (e) {
       setState(() {
         _errorMessage = 'Failed to load dashboard data: $e';
@@ -54,6 +69,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _onDailyTaskChanged(int index, {String? text, bool? done}) async {
+    if (done != null) HapticFeedback.selectionClick();
     setState(() {
       if (text != null) {
         _dailyTasks[index] = DailyTaskItem(text: text, done: _dailyTasks[index].done);
@@ -122,15 +138,20 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       );
     }
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 40),
-          _buildDashboardHeader(),
-          const SizedBox(height: 48),
-          _buildWidgetGrid(),
-          const ScholarFooter(),
-        ],
+    return RefreshIndicator(
+      color: ScholarColors.accent,
+      onRefresh: _loadData,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            _buildDashboardHeader(),
+            const SizedBox(height: 48),
+            _buildWidgetGrid(),
+            const ScholarFooter(),
+          ],
+        ),
       ),
     );
   }
@@ -246,12 +267,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     const SizedBox(width: 14),
                     Expanded(
                       child: TextField(
-                        controller: TextEditingController.fromValue(
-                          TextEditingValue(
-                            text: task.text,
-                            selection: TextSelection.collapsed(offset: task.text.length),
-                          ),
-                        ),
+                        controller: _controllers[i],
                         onChanged: (v) => _onDailyTaskChanged(i, text: v),
                         style: ScholarStyles.sans(
                           fontSize: 15,

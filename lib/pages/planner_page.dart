@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
@@ -28,10 +29,22 @@ class _PlannerPageState extends State<PlannerPage> {
   late Map<String, String> _weeklyPlan;
   late Map<int, List<bool>> _weeklyHabits;
 
+  final Map<String, TextEditingController> _dayControllers = {
+    for (final day in _daysOfWeek) day: TextEditingController(),
+  };
+
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    for (final c in _dayControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -47,6 +60,9 @@ class _PlannerPageState extends State<PlannerPage> {
         _weeklyHabits = habits;
         _isLoading = false;
       });
+      for (final day in _daysOfWeek) {
+        _dayControllers[day]!.text = _weeklyPlan[day] ?? '';
+      }
     } catch (e) {
       setState(() {
         _errorMessage = 'Failed to load planner: $e';
@@ -61,6 +77,7 @@ class _PlannerPageState extends State<PlannerPage> {
   }
 
   void _onHabitChanged(int habitIndex, int dayIndex, bool value) async {
+    HapticFeedback.selectionClick();
     setState(() {
       _weeklyHabits.putIfAbsent(habitIndex, () => List.filled(7, false));
       _weeklyHabits[habitIndex]![dayIndex] = value;
@@ -87,6 +104,9 @@ class _PlannerPageState extends State<PlannerPage> {
               try {
                 await _dataService.clearPlannerAndHabits();
                 await _loadData();
+                for (final c in _dayControllers.values) {
+                  c.clear();
+                }
               } catch (e) {
                 setState(() {
                   _errorMessage = 'Failed to clear: $e';
@@ -141,15 +161,20 @@ class _PlannerPageState extends State<PlannerPage> {
         ),
       );
     }
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 64),
-          _buildPageHeader(),
-          const SizedBox(height: 32),
-          _buildLayout(),
-          const ScholarFooter(),
-        ],
+    return RefreshIndicator(
+      color: ScholarColors.accent,
+      onRefresh: _loadData,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            const SizedBox(height: 24),
+            _buildPageHeader(),
+            const SizedBox(height: 32),
+            _buildLayout(),
+            const ScholarFooter(),
+          ],
+        ),
       ),
     );
   }
@@ -292,7 +317,7 @@ class _PlannerPageState extends State<PlannerPage> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: TextField(
-                    controller: TextEditingController.fromValue(TextEditingValue(text: _weeklyPlan[day] ?? '')),
+                    controller: _dayControllers[day],
                     onChanged: (v) => _onPlanChanged(day, v),
                     maxLines: null,
                     expands: true,

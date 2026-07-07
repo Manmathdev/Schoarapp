@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 class Task {
   final int id;
   String subject;
@@ -25,6 +26,11 @@ class Task {
       color: (json['color'] as String?) ?? '#9c9490',
     );
   }
+  
+  Color get colorValue {
+  final hex = color.replaceFirst('#', '');
+  return Color(int.parse('FF$hex', radix: 16));
+}
 
   Map<String, dynamic> toJson() {
     return {
