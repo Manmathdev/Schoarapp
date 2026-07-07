@@ -42,12 +42,35 @@ class GlassCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(40),
-            child: child,
-          ),
+        child: Stack(
+          children: [
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              child: Padding(
+                padding: padding ?? const EdgeInsets.all(40),
+                child: child,
+              ),
+            ),
+            // Subtle top shine line, matching the website's `.glass::before`
+            // gradient accent (transparent -> white -> transparent).
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 1,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Color(0x80FFFFFF),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -25,17 +25,15 @@ class ScholarHeader extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: [
-                Text(
-                  'Scholar',
-                  style: ScholarStyles.serif(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.02,
-                  ),
+            child: Center(
+              child: Text(
+                'Scholar',
+                style: ScholarStyles.serif(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.02,
                 ),
-              ],
+              ),
             ),
           ),
         ),

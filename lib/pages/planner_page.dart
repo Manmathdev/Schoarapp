@@ -301,11 +301,13 @@ class _PlannerPageState extends State<PlannerPage> {
         final borderColor = ScholarColors.dayBorderColors[i];
         return SizedBox(
           width: 280,
+          height: 260,
           child: GlassCard(
             padding: const EdgeInsets.all(28),
             borderRadius: 20,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   decoration: BoxDecoration(
