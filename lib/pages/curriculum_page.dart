@@ -5,6 +5,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
 import '../widgets/scholar_footer.dart';
 import '../widgets/background_orbs.dart';
+import '../widgets/scholar_dialog.dart';
 import '../services/data_service.dart';
 import '../models/task.dart';
 
@@ -96,44 +97,38 @@ class _CurriculumPageState extends State<CurriculumPage> {
   }
 
   void _resetCurriculum() {
-    showDialog(
+    showScholarDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Reset Curriculum'),
-        content: const Text(
-          'Are you sure you want to load the fresh 76-chapter syllabus? Any custom notes and status updates will be lost.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              setState(() => _isLoading = true);
-              try {
-                await _dataService.resetCurriculum();
-                final tasks = await _dataService.getTasks();
-                for (final c in _notesControllers.values) {
-                  c.dispose();
-                }
-                _notesControllers.clear();
-                setState(() {
-                  _tasks = tasks;
-                  _isLoading = false;
-                });
-              } catch (e) {
-                setState(() {
-                  _errorMessage = 'Failed to reset: $e';
-                  _isLoading = false;
-                });
+      title: 'Reset Curriculum',
+      content: 'Are you sure you want to load the fresh 76-chapter syllabus? Any custom notes and status updates will be lost.',
+      actions: [
+        ScholarDialogAction(label: 'Cancel', onPressed: () => Navigator.pop(context)),
+        ScholarDialogAction(
+          label: 'Reset',
+          isDestructiveOrPrimary: true,
+          onPressed: () async {
+            Navigator.pop(context);
+            setState(() => _isLoading = true);
+            try {
+              await _dataService.resetCurriculum();
+              final tasks = await _dataService.getTasks();
+              for (final c in _notesControllers.values) {
+                c.dispose();
               }
-            },
-            child: Text('Reset', style: TextStyle(color: ScholarColors.accent)),
-          ),
-        ],
-      ),
+              _notesControllers.clear();
+              setState(() {
+                _tasks = tasks;
+                _isLoading = false;
+              });
+            } catch (e) {
+              setState(() {
+                _errorMessage = 'Failed to reset: $e';
+                _isLoading = false;
+              });
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -249,29 +244,102 @@ class _CurriculumPageState extends State<CurriculumPage> {
   }
 
   Widget _buildLayout(List<Task> filtered) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 768;
-          if (isWide) {
-            return Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 768;
+        if (isWide) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(width: 260, child: _buildSidebar()),
                 const SizedBox(width: 48),
                 Expanded(child: _buildTaskGrid(filtered)),
               ],
-            );
-          } else {
-            return Column(
-              children: [
-                _buildSidebar(),
-                const SizedBox(height: 24),
-                _buildTaskGrid(filtered),
-              ],
-            );
-          }
+            ),
+          );
+        }
+        // On phones, a tall vertical filter sidebar sitting above the task
+        // grid forces a lot of scrolling before reaching any content. A
+        // horizontal scrolling chip row keeps filters reachable with a
+        // thumb swipe while getting out of the way of the actual tasks.
+        return Column(
+          children: [
+            _buildMobileFilterChips(),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextButton.icon(
+                  onPressed: _resetCurriculum,
+                  icon: Icon(Icons.refresh, size: 14, color: ScholarColors.textMuted),
+                  label: Text(
+                    'Reset Curriculum',
+                    style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, color: ScholarColors.textMuted),
+                  ),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildTaskGrid(filtered),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileFilterChips() {
+    final filters = <(String, String, Color?)>[
+      ('All Active', 'all', null),
+      ('Physics', 'Physics', ScholarColors.physics),
+      ('Chemistry', 'Chemistry', ScholarColors.chemistry),
+      ('Mathematics', 'Mathematics', ScholarColors.mathematics),
+      ('English', 'English', ScholarColors.english),
+      ('IT', 'IT', ScholarColors.it),
+      ('Sanskrit', 'Sanskrit', ScholarColors.sanskrit),
+    ];
+    return SizedBox(
+      height: 44,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: filters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final (label, filter, color) = filters[i];
+          final isActive = _currentFilter == filter;
+          return GestureDetector(
+            onTap: () => _setFilter(filter),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                color: isActive ? ScholarColors.accent : ScholarColors.glassBg,
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(
+                  color: isActive ? ScholarColors.accent : ScholarColors.glassBorder,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  label,
+                  style: ScholarStyles.sans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isActive
+                        ? Colors.white
+                        : (color ?? ScholarColors.textSecondary),
+                  ),
+                ),
+              ),
+            ),
+          );
         },
       ),
     );

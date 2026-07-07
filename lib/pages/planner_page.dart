@@ -5,6 +5,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
 import '../widgets/scholar_footer.dart';
 import '../widgets/background_orbs.dart';
+import '../widgets/scholar_dialog.dart';
 import '../services/data_service.dart';
 
 const List<String> _daysOfWeek = [
@@ -90,34 +91,33 @@ class _PlannerPageState extends State<PlannerPage> {
   }
 
   void _clearWeek() {
-    showDialog(
+    showScholarDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Clear Week'),
-        content: const Text('Clear your entire schedule and habit tracker?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              setState(() => _isLoading = true);
-              try {
-                await _dataService.clearPlannerAndHabits();
-                await _loadData();
-                for (final c in _dayControllers.values) {
-                  c.clear();
-                }
-              } catch (e) {
-                setState(() {
-                  _errorMessage = 'Failed to clear: $e';
-                  _isLoading = false;
-                });
+      title: 'Clear Week',
+      content: 'Clear your entire schedule and habit tracker?',
+      actions: [
+        ScholarDialogAction(label: 'Cancel', onPressed: () => Navigator.pop(context)),
+        ScholarDialogAction(
+          label: 'Clear',
+          isDestructiveOrPrimary: true,
+          onPressed: () async {
+            Navigator.pop(context);
+            setState(() => _isLoading = true);
+            try {
+              await _dataService.clearPlannerAndHabits();
+              await _loadData();
+              for (final c in _dayControllers.values) {
+                c.clear();
               }
-            },
-            child: Text('Clear', style: TextStyle(color: ScholarColors.accent)),
-          ),
-        ],
-      ),
+            } catch (e) {
+              setState(() {
+                _errorMessage = 'Failed to clear: $e';
+                _isLoading = false;
+              });
+            }
+          },
+        ),
+      ],
     );
   }
 

@@ -6,6 +6,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
 import '../widgets/scholar_footer.dart';
 import '../widgets/background_orbs.dart';
+import '../widgets/scholar_dialog.dart';
 import '../services/data_service.dart';
 import '../models/resource.dart';
 
@@ -125,27 +126,26 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   void _deleteResource(int id) {
-    showDialog(
+    showScholarDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Remove Resource'),
-        content: const Text('Remove this link from your library?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              setState(() => _resources.removeWhere((r) => r.id == id));
-              try {
-                await _dataService.saveResources(_resources);
-              } catch (e) {
-                if (mounted) setState(() => _errorMessage = 'Failed to save: $e');
-              }
-            },
-            child: Text('Remove', style: TextStyle(color: ScholarColors.accent)),
-          ),
-        ],
-      ),
+      title: 'Remove Resource',
+      content: 'Remove this link from your library?',
+      actions: [
+        ScholarDialogAction(label: 'Cancel', onPressed: () => Navigator.pop(context)),
+        ScholarDialogAction(
+          label: 'Remove',
+          isDestructiveOrPrimary: true,
+          onPressed: () async {
+            Navigator.pop(context);
+            setState(() => _resources.removeWhere((r) => r.id == id));
+            try {
+              await _dataService.saveResources(_resources);
+            } catch (e) {
+              if (mounted) setState(() => _errorMessage = 'Failed to save: $e');
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -159,9 +159,13 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   void _showAlert(String message) {
-    showDialog(
+    showScholarDialog(
       context: context,
-      builder: (ctx) => AlertDialog(content: Text(message), actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))]),
+      title: 'Heads up',
+      content: message,
+      actions: [
+        ScholarDialogAction(label: 'OK', isDestructiveOrPrimary: true, onPressed: () => Navigator.pop(context)),
+      ],
     );
   }
 
@@ -396,8 +400,17 @@ class _ResourcesPageState extends State<ResourcesPage> {
         const SizedBox(height: 4),
         DropdownButtonFormField<String>(
           value: currentValue,
-          items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
+          items: options
+              .map((o) => DropdownMenuItem(
+                    value: o,
+                    child: Text(o, style: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textPrimary)),
+                  ))
+              .toList(),
           onChanged: onChanged,
+          icon: Icon(Icons.keyboard_arrow_down, color: ScholarColors.textMuted, size: 20),
+          dropdownColor: ScholarColors.bgBase,
+          borderRadius: BorderRadius.circular(14),
+          style: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textPrimary),
           decoration: InputDecoration(
             filled: true,
             fillColor: ScholarColors.white40,
@@ -406,7 +419,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.black.withOpacity(0.05))),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: ScholarColors.accent)),
           ),
-          style: ScholarStyles.sans(fontSize: 13),
         ),
       ],
     );

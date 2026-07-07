@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme.dart';
@@ -27,6 +28,13 @@ class _AppShellState extends State<AppShell> {
     ResourcesPage(),
   ];
 
+  static const _icons = [
+    (Icons.dashboard_outlined, Icons.dashboard, 'Dashboard'),
+    (Icons.menu_book_outlined, Icons.menu_book, 'Curriculum'),
+    (Icons.calendar_today_outlined, Icons.calendar_today, 'Planner'),
+    (Icons.folder_outlined, Icons.folder, 'Resources'),
+  ];
+
   void _onTap(int i) {
     if (i == _index) return;
     HapticFeedback.selectionClick();
@@ -42,50 +50,62 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: ScholarColors.bgBase,
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.06))),
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: [
-              _navItem(context, 0, Icons.dashboard_outlined, Icons.dashboard, 'Dashboard'),
-              _navItem(context, 1, Icons.menu_book_outlined, Icons.menu_book, 'Curriculum'),
-              _navItem(context, 2, Icons.calendar_today_outlined, Icons.calendar_today, 'Planner'),
-              _navItem(context, 3, Icons.folder_outlined, Icons.folder, 'Resources'),
-            ],
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: ScholarColors.glassBg,
+            border: Border(top: BorderSide(color: ScholarColors.glassBorder)),
+          ),
+          child: SafeArea(
+            child: SizedBox(
+              height: 66,
+              child: Row(
+                children: List.generate(_icons.length, (i) {
+                  final (icon, activeIcon, label) = _icons[i];
+                  return _navItem(i, icon, activeIcon, label);
+                }),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _navItem(BuildContext context, int index, IconData icon, IconData activeIcon, String label) {
+  Widget _navItem(int index, IconData icon, IconData activeIcon, String label) {
     final isActive = _index == index;
     return Expanded(
       child: InkWell(
         onTap: () => _onTap(index),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              size: 22,
-              color: isActive ? ScholarColors.accent : ScholarColors.textMuted,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: ScholarStyles.sans(
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? ScholarColors.accentSoft : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isActive ? activeIcon : icon,
+                size: 21,
                 color: isActive ? ScholarColors.accent : ScholarColors.textMuted,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: ScholarStyles.sans(
+                  fontSize: 10,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive ? ScholarColors.accent : ScholarColors.textMuted,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
