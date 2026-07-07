@@ -53,7 +53,7 @@ class GlassCard extends StatelessWidget {
         child: Stack(
           children: [
             BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: Container(
                 // A very faint vertical gradient inside the glass itself
                 // gives the card a sense of catching light from above,

@@ -52,7 +52,7 @@ class _AppShellState extends State<AppShell> {
   Widget _buildBottomNav(BuildContext context) {
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           decoration: BoxDecoration(
             color: ScholarColors.glassBg,

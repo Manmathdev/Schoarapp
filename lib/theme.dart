@@ -4,14 +4,14 @@ class ScholarColors {
   ScholarColors._();
 
   static const Color bgBase = Color(0xFFe8e2d9);
-  static const Color glassBg = Color(0x26FFFFFF);
+  static const Color glassBg = Color(0x8FFFFFFF);
   static const Color glassBorder = Color(0x99FFFFFF);
   static const Color glassBorderHover = Color(0xD9FFFFFF);
   static const Color glassShadow = Color(0x0F000000);
   static const Color glassShadowHover = Color(0x1A000000);
   static const Color textPrimary = Color(0xFF1c1917);
-  static const Color textSecondary = Color(0xFF5c5551);
-  static const Color textMuted = Color(0xFF847c77);
+  static const Color textSecondary = Color(0xFF574F49);
+  static const Color textMuted = Color(0xFF6B6259);
   static const Color accent = Color(0xFFb3916e);
   static const Color accentSoft = Color(0x1Ab3916e);
   static const Color white25 = Color(0x40FFFFFF);
