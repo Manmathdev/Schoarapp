@@ -55,7 +55,7 @@ class ScholarStyles {
     Color color = ScholarColors.textPrimary,
     FontStyle fontStyle = FontStyle.normal,
   }) {
-    return GoogleFonts.playfairDisplay(
+    return GoogleFonts.cormorantGaramond(
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
@@ -74,7 +74,7 @@ class ScholarStyles {
     FontStyle fontStyle = FontStyle.normal,
     TextDecoration decoration = TextDecoration.none,
   }) {
-    return GoogleFonts.montserrat(
+    return GoogleFonts.poppins(
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
@@ -98,62 +98,62 @@ class ScholarTheme {
         secondary: ScholarColors.accent,
         surface: ScholarColors.glassBg,
       ),
-      fontFamily: GoogleFonts.montserrat().fontFamily,
-      textTheme: GoogleFonts.playfairDisplayTextTheme(baseTextTheme).copyWith(
-        displayLarge: GoogleFonts.playfairDisplay(
+      fontFamily: GoogleFonts.poppins().fontFamily,
+      textTheme: GoogleFonts.cormorantGaramondTextTheme(baseTextTheme).copyWith(
+        displayLarge: GoogleFonts.cormorantGaramond(
           fontSize: 72,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.03,
           height: 1.1,
           color: ScholarColors.textPrimary,
         ),
-        displayMedium: GoogleFonts.playfairDisplay(
+        displayMedium: GoogleFonts.cormorantGaramond(
           fontSize: 56,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.03,
           height: 1.1,
           color: ScholarColors.textPrimary,
         ),
-        headlineLarge: GoogleFonts.playfairDisplay(
+        headlineLarge: GoogleFonts.cormorantGaramond(
           fontSize: 28,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.01,
           color: ScholarColors.textPrimary,
         ),
-        headlineMedium: GoogleFonts.playfairDisplay(
+        headlineMedium: GoogleFonts.cormorantGaramond(
           fontSize: 24,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.01,
           color: ScholarColors.textPrimary,
         ),
-        titleLarge: GoogleFonts.playfairDisplay(
+        titleLarge: GoogleFonts.cormorantGaramond(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.01,
           color: ScholarColors.textPrimary,
         ),
-        titleMedium: GoogleFonts.playfairDisplay(
+        titleMedium: GoogleFonts.cormorantGaramond(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: ScholarColors.textPrimary,
         ),
-        bodyLarge: GoogleFonts.montserrat(
+        bodyLarge: GoogleFonts.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w300,
           color: ScholarColors.textSecondary,
         ),
-        bodyMedium: GoogleFonts.montserrat(
+        bodyMedium: GoogleFonts.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: ScholarColors.textPrimary,
         ),
-        bodySmall: GoogleFonts.montserrat(
+        bodySmall: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           letterSpacing: 2.5,
           color: ScholarColors.textSecondary,
         ),
-        labelSmall: GoogleFonts.montserrat(
+        labelSmall: GoogleFonts.poppins(
           fontSize: 10,
           fontWeight: FontWeight.w600,
           letterSpacing: 4,
