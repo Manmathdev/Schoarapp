@@ -372,13 +372,13 @@ class _CurriculumPageState extends State<CurriculumPage> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    border: Border(left: BorderSide(color: task.color, width: 3)),
+                    border: Border(left: BorderSide(color: task.colorValue, width: 3)),
                   ),
                   padding: const EdgeInsets.only(left: 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(task.subject.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: task.color)),
+                      Text(task.subject.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: task.colorValue)),
                       const SizedBox(height: 4),
                       Text(
                         task.title,
