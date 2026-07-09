@@ -260,30 +260,144 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Widget _buildLayout(List<Resource> resources) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 768;
-          if (isWide) {
-            return Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 768;
+        if (isWide) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(width: 300, child: _buildSidebar()),
                 const SizedBox(width: 48),
                 Expanded(child: _buildResourceGrid(resources)),
               ],
-            );
-          } else {
-            return Column(
-              children: [
-                _buildSidebar(),
-                const SizedBox(height: 24),
-                _buildResourceGrid(resources),
-              ],
-            );
-          }
+            ),
+          );
+        }
+        // On phones, stacking the full filter sidebar AND the "Save a Link"
+        // form above the resource grid meant scrolling past a large form
+        // just to see saved links. Filters become a horizontal chip row
+        // (same pattern as Curriculum) and the add-form moves into a
+        // collapsed expansion tile below the grid — a standard "add new"
+        // placement that doesn't compete with existing content for space.
+        return Column(
+          children: [
+            _buildMobileFilterChips(),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildResourceGrid(resources),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildAddResourceExpansion(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileFilterChips() {
+    final filters = <(String, String, Color?)>[
+      ('All Resources', 'all', null),
+      ('Physics', 'Physics', ScholarColors.physics),
+      ('Chemistry', 'Chemistry', ScholarColors.chemistry),
+      ('Mathematics', 'Mathematics', ScholarColors.mathematics),
+      ('English', 'English', ScholarColors.english),
+      ('IT', 'IT', ScholarColors.it),
+      ('Sanskrit', 'Sanskrit', ScholarColors.sanskrit),
+      ('General', 'General', ScholarColors.general),
+    ];
+    return SizedBox(
+      height: ScholarTokens.minTouchTarget,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: filters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final (label, filter, color) = filters[i];
+          final isActive = _currentFilter == filter;
+          return Semantics(
+            button: true,
+            selected: isActive,
+            label: 'Filter by $label',
+            child: GestureDetector(
+              onTap: () => _setFilter(filter),
+              child: AnimatedContainer(
+                duration: ScholarTokens.motionMedium,
+                curve: ScholarTokens.motionCurve,
+                height: ScholarTokens.minTouchTarget,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                decoration: BoxDecoration(
+                  color: isActive ? ScholarColors.accent : ScholarColors.glassBg,
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(
+                    color: isActive ? ScholarColors.accent : ScholarColors.glassBorder,
+                    width: isActive ? 1.5 : 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: ScholarStyles.sans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isActive ? Colors.white : (color ?? ScholarColors.textSecondary),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
         },
+      ),
+    );
+  }
+
+  Widget _buildAddResourceExpansion() {
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      borderRadius: 20,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          title: Text('Save a Link', style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600)),
+          iconColor: ScholarColors.accent,
+          collapsedIconColor: ScholarColors.textMuted,
+          children: [
+            _buildFormField('Resource Title', _titleController, hint: 'e.g., Physics PYQ Playlist'),
+            const SizedBox(height: 16),
+            _buildFormField('URL (Link)', _urlController, hint: 'https://...'),
+            const SizedBox(height: 16),
+            _buildDropdown('Subject', ['Physics', 'Chemistry', 'Mathematics', 'English', 'IT', 'Sanskrit', 'General'], _selectedSubject, (v) => setState(() => _selectedSubject = v!)),
+            const SizedBox(height: 16),
+            _buildDropdown('Format', ['Video', 'PDF', 'Website'], _selectedType, (v) => setState(() => _selectedType = v!)),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _addResource,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ScholarColors.accentSoft,
+                  foregroundColor: ScholarColors.accent,
+                  elevation: 0,
+                  side: BorderSide(color: ScholarColors.accent),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  minimumSize: const Size(0, ScholarTokens.minTouchTarget),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -335,6 +449,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
                 elevation: 0,
                 side: BorderSide(color: ScholarColors.accent),
                 padding: const EdgeInsets.symmetric(vertical: 12),
+                minimumSize: const Size(0, ScholarTokens.minTouchTarget),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2)),
@@ -347,21 +462,27 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   Widget _buildFilterItem(String label, String filter, {Color? color}) {
     final isActive = _currentFilter == filter;
-    return GestureDetector(
-      onTap: () => _setFilter(filter),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? ScholarColors.white30 : ScholarColors.glassBg,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          label,
-          style: ScholarStyles.sans(
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: color ?? (isActive ? ScholarColors.textPrimary : ScholarColors.textSecondary),
+    return Semantics(
+      button: true,
+      selected: isActive,
+      child: GestureDetector(
+        onTap: () => _setFilter(filter),
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? ScholarColors.white30 : ScholarColors.glassBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            label,
+            style: ScholarStyles.sans(
+              fontSize: 13,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              color: color ?? (isActive ? ScholarColors.textPrimary : ScholarColors.textSecondary),
+            ),
           ),
         ),
       ),
@@ -479,7 +600,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: ScholarColors.textSecondary,
                         side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        minimumSize: const Size(0, ScholarTokens.minTouchTarget),
+                        tapTargetSize: MaterialTapTargetSize.padded,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                       ),
                       child: Text(
@@ -487,9 +610,19 @@ class _ResourcesPageState extends State<ResourcesPage> {
                         style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => _deleteResource(r.id),
-                      child: Text('Remove', style: ScholarStyles.sans(fontSize: 10, color: ScholarColors.textMuted, decoration: TextDecoration.underline)),
+                    Semantics(
+                      button: true,
+                      label: 'Remove ${r.title} from resources',
+                      child: TextButton(
+                        onPressed: () => _deleteResource(r.id),
+                        style: TextButton.styleFrom(
+                          foregroundColor: ScholarColors.textMuted,
+                          minimumSize: const Size(0, ScholarTokens.minTouchTarget),
+                          tapTargetSize: MaterialTapTargetSize.padded,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        child: Text('Remove', style: ScholarStyles.sans(fontSize: 11, color: ScholarColors.textMuted, decoration: TextDecoration.underline)),
+                      ),
                     ),
                   ],
                 ),

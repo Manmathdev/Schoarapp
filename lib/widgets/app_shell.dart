@@ -11,6 +11,12 @@ import '../pages/resources_page.dart';
 /// four primary destinations. Each tab keeps its own scroll and state
 /// alive via IndexedStack, matching how the website's persistent header
 /// nav behaved, but adapted to a thumb-reachable mobile pattern.
+///
+/// Built on Flutter's own NavigationBar (Material 3) rather than a custom
+/// InkWell row — this gives correct screen-reader semantics (selected
+/// state announcements), platform-consistent ripple/indicator behavior,
+/// and keyboard/switch-access support for free, while still being fully
+/// themed to match Scholar's glass aesthetic.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -28,7 +34,7 @@ class _AppShellState extends State<AppShell> {
     ResourcesPage(),
   ];
 
-  static const _icons = [
+  static const _destinations = [
     (Icons.dashboard_outlined, Icons.dashboard, 'Dashboard'),
     (Icons.menu_book_outlined, Icons.menu_book, 'Curriculum'),
     (Icons.calendar_today_outlined, Icons.calendar_today, 'Planner'),
@@ -45,66 +51,49 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: _buildBottomNav(context),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: ScholarColors.glassBg,
-            border: Border(top: BorderSide(color: ScholarColors.glassBorder)),
-          ),
-          child: SafeArea(
-            child: SizedBox(
-              height: 66,
-              child: Row(
-                children: List.generate(_icons.length, (i) {
-                  final (icon, activeIcon, label) = _icons[i];
-                  return _navItem(i, icon, activeIcon, label);
-                }),
+      bottomNavigationBar: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: NavigationBarTheme(
+            data: NavigationBarThemeData(
+              backgroundColor: ScholarColors.glassBg,
+              indicatorColor: ScholarColors.accentSoft,
+              surfaceTintColor: Colors.transparent,
+              height: ScholarTokens.minTouchTarget + 18,
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                final isSelected = states.contains(WidgetState.selected);
+                return ScholarStyles.sans(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? ScholarColors.accent : ScholarColors.textMuted,
+                );
+              }),
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                final isSelected = states.contains(WidgetState.selected);
+                return IconThemeData(
+                  color: isSelected ? ScholarColors.accent : ScholarColors.textMuted,
+                  size: 22,
+                );
+              }),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: ScholarColors.glassBorder)),
+              ),
+              child: NavigationBar(
+                selectedIndex: _index,
+                onDestinationSelected: _onTap,
+                animationDuration: ScholarTokens.motionMedium,
+                destinations: _destinations
+                    .map((d) => NavigationDestination(
+                          icon: Icon(d.$1),
+                          selectedIcon: Icon(d.$2),
+                          label: d.$3,
+                          tooltip: d.$3,
+                        ))
+                    .toList(),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem(int index, IconData icon, IconData activeIcon, String label) {
-    final isActive = _index == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => _onTap(index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-          decoration: BoxDecoration(
-            color: isActive ? ScholarColors.accentSoft : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isActive ? activeIcon : icon,
-                size: 21,
-                color: isActive ? ScholarColors.accent : ScholarColors.textMuted,
-              ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: ScholarStyles.sans(
-                  fontSize: 10,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  color: isActive ? ScholarColors.accent : ScholarColors.textMuted,
-                ),
-              ),
-            ],
           ),
         ),
       ),

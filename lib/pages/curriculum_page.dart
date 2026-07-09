@@ -271,7 +271,7 @@ class _CurriculumPageState extends State<CurriculumPage> {
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: TextButton.icon(
                   onPressed: _resetCurriculum,
                   icon: Icon(Icons.refresh, size: 14, color: ScholarColors.textMuted),
@@ -279,7 +279,11 @@ class _CurriculumPageState extends State<CurriculumPage> {
                     'Reset Curriculum',
                     style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, color: ScholarColors.textMuted),
                   ),
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, ScholarTokens.minTouchTarget),
+                    tapTargetSize: MaterialTapTargetSize.padded,
+                  ),
                 ),
               ),
             ),
@@ -305,7 +309,7 @@ class _CurriculumPageState extends State<CurriculumPage> {
       ('Sanskrit', 'Sanskrit', ScholarColors.sanskrit),
     ];
     return SizedBox(
-      height: 44,
+      height: ScholarTokens.minTouchTarget,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -314,27 +318,35 @@ class _CurriculumPageState extends State<CurriculumPage> {
         itemBuilder: (context, i) {
           final (label, filter, color) = filters[i];
           final isActive = _currentFilter == filter;
-          return GestureDetector(
-            onTap: () => _setFilter(filter),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: isActive ? ScholarColors.accent : ScholarColors.glassBg,
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(
-                  color: isActive ? ScholarColors.accent : ScholarColors.glassBorder,
+          return Semantics(
+            button: true,
+            selected: isActive,
+            label: 'Filter by $label',
+            child: GestureDetector(
+              onTap: () => _setFilter(filter),
+              child: AnimatedContainer(
+                duration: ScholarTokens.motionMedium,
+                curve: ScholarTokens.motionCurve,
+                height: ScholarTokens.minTouchTarget,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                decoration: BoxDecoration(
+                  color: isActive ? ScholarColors.accent : ScholarColors.glassBg,
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(
+                    color: isActive ? ScholarColors.accent : ScholarColors.glassBorder,
+                    width: isActive ? 1.5 : 1,
+                  ),
                 ),
-              ),
-              child: Center(
-                child: Text(
-                  label,
-                  style: ScholarStyles.sans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isActive
-                        ? Colors.white
-                        : (color ?? ScholarColors.textSecondary),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: ScholarStyles.sans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isActive
+                          ? Colors.white
+                          : (color ?? ScholarColors.textSecondary),
+                    ),
                   ),
                 ),
               ),
@@ -378,6 +390,7 @@ class _CurriculumPageState extends State<CurriculumPage> {
                 foregroundColor: ScholarColors.textMuted,
                 side: BorderSide(color: ScholarColors.textMuted),
                 padding: const EdgeInsets.symmetric(vertical: 10),
+                minimumSize: const Size(0, ScholarTokens.minTouchTarget),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Text('Reset / Reload Curriculum', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, color: ScholarColors.textMuted)),
@@ -390,21 +403,27 @@ class _CurriculumPageState extends State<CurriculumPage> {
 
   Widget _buildFilterItem(String label, String filter, {Color? color}) {
     final isActive = _currentFilter == filter;
-    return GestureDetector(
-      onTap: () => _setFilter(filter),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? ScholarColors.white30 : ScholarColors.glassBg,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          label,
-          style: ScholarStyles.sans(
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: color ?? (isActive ? ScholarColors.textPrimary : ScholarColors.textSecondary),
+    return Semantics(
+      button: true,
+      selected: isActive,
+      child: GestureDetector(
+        onTap: () => _setFilter(filter),
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? ScholarColors.white30 : ScholarColors.glassBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            label,
+            style: ScholarStyles.sans(
+              fontSize: 13,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              color: color ?? (isActive ? ScholarColors.textPrimary : ScholarColors.textSecondary),
+            ),
           ),
         ),
       ),
@@ -476,15 +495,17 @@ class _CurriculumPageState extends State<CurriculumPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(task.status.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _getStatusColor(task.status))),
-                    SizedBox(
-                      height: 28,
-                      child: ElevatedButton(
+                    Semantics(
+                      button: true,
+                      label: isMastered ? 'Chapter mastered' : 'Update status, currently ${task.status}',
+                      child: TextButton(
                         onPressed: () => _cycleStatus(task.id),
-                        style: ElevatedButton.styleFrom(
+                        style: TextButton.styleFrom(
                           backgroundColor: isMastered ? Colors.black.withOpacity(0.05) : ScholarColors.accentSoft,
-                          foregroundColor: isMastered ? const Color(0xFF999999) : ScholarColors.accent,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 19),
+                          foregroundColor: isMastered ? ScholarColors.textMuted : ScholarColors.accent,
+                          padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 8),
+                          minimumSize: const Size(64, ScholarTokens.minTouchTarget),
+                          tapTargetSize: MaterialTapTargetSize.padded,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                         ),
                         child: Text(

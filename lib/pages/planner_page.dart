@@ -196,6 +196,7 @@ class _PlannerPageState extends State<PlannerPage> {
               foregroundColor: ScholarColors.accent,
               side: BorderSide(color: ScholarColors.accent),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              minimumSize: const Size(0, ScholarTokens.minTouchTarget),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
             ),
             child: Text('Clear Entire Week', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
@@ -255,25 +256,39 @@ class _PlannerPageState extends State<PlannerPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: List.generate(7, (d) {
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () => _onHabitChanged(i, d, !_weeklyHabits[i]![d]),
-                            child: Text(_dayLabels[d], style: ScholarStyles.sans(fontSize: 9, color: ScholarColors.textMuted, letterSpacing: 0.5)),
-                          ),
-                          const SizedBox(height: 5),
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: Checkbox(
-                              value: _weeklyHabits[i]![d],
-                              onChanged: (v) => _onHabitChanged(i, d, v ?? false),
-                              activeColor: ScholarColors.accent,
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
+                      final isChecked = _weeklyHabits[i]![d];
+                      return Expanded(
+                        child: Semantics(
+                          button: true,
+                          checked: isChecked,
+                          label: '${_habitsList[i]} on ${_dayLabels[d]}',
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _onHabitChanged(i, d, !isChecked);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(_dayLabels[d], style: ScholarStyles.sans(fontSize: 9, color: ScholarColors.textMuted, letterSpacing: 0.5)),
+                                  const SizedBox(height: 5),
+                                  IgnorePointer(
+                                    child: Checkbox(
+                                      value: isChecked,
+                                      onChanged: (v) => _onHabitChanged(i, d, v ?? false),
+                                      activeColor: ScholarColors.accent,
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       );
                     }),
                   ),

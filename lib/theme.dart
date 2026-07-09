@@ -43,6 +43,51 @@ class ScholarColors {
   ];
 }
 
+/// Design tokens enforcing common platform standards:
+/// - Spacing on a 4pt grid (Material spacing system)
+/// - Minimum touch targets of 48x48dp (Material) / 44x44pt (HIG) — we use
+///   the stricter 48dp everywhere so both platforms are comfortably covered
+/// - A consistent elevation/shadow scale instead of one-off shadow values
+/// - Shared motion durations/curves instead of arbitrary per-widget numbers
+class ScholarTokens {
+  ScholarTokens._();
+
+  // 4pt spacing scale
+  static const double space1 = 4;
+  static const double space2 = 8;
+  static const double space3 = 12;
+  static const double space4 = 16;
+  static const double space5 = 20;
+  static const double space6 = 24;
+  static const double space8 = 32;
+  static const double space10 = 40;
+  static const double space12 = 48;
+
+  // Minimum interactive touch target (Material 48dp / HIG 44pt — using the
+  // larger of the two so both platforms are satisfied).
+  static const double minTouchTarget = 48;
+
+  // Motion
+  static const Duration motionFast = Duration(milliseconds: 150);
+  static const Duration motionMedium = Duration(milliseconds: 220);
+  static const Duration motionSlow = Duration(milliseconds: 320);
+  static const Curve motionCurve = Curves.easeOutCubic;
+
+  // Elevation shadow presets (Material-style: ambient + key light layering)
+  static List<BoxShadow> elevation1 = [
+    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 1)),
+    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 2, offset: const Offset(0, 1)),
+  ];
+  static List<BoxShadow> elevation2 = [
+    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4)),
+    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 1)),
+  ];
+  static List<BoxShadow> elevation3 = [
+    BoxShadow(color: Colors.black.withOpacity(0.09), blurRadius: 28, offset: const Offset(0, 10)),
+    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+  ];
+}
+
 /// Font families are bundled directly as assets (see pubspec.yaml) rather
 /// than fetched over the network via google_fonts. This guarantees the
 /// correct typeface renders every time, even offline or on first launch —

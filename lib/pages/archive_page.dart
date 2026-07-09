@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/background_orbs.dart';
@@ -54,6 +55,7 @@ class ArchivePage extends StatelessWidget {
         children: [
           IconButton(
             icon: Icon(Icons.arrow_back_ios_new, size: 18, color: ScholarColors.accent),
+            tooltip: 'Back to Resources',
             onPressed: () => Navigator.of(context).pop(),
           ),
           Text(
@@ -131,6 +133,7 @@ class ArchivePage extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () {
+                    HapticFeedback.lightImpact();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -141,27 +144,33 @@ class ArchivePage extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                    decoration: BoxDecoration(
-                      color: ScholarColors.white25,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(entry.year.toString(), style: ScholarStyles.sans(fontSize: 14, fontWeight: FontWeight.w500)),
-                        Row(
-                          children: [
-                            Text(
-                              'VIEW PDF',
-                              style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 2, color: ScholarColors.accent),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(Icons.chevron_right, size: 14, color: ScholarColors.accent),
-                          ],
-                        ),
-                      ],
+                  child: Semantics(
+                    button: true,
+                    label: 'View $subject ${entry.year} question paper PDF',
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                      decoration: BoxDecoration(
+                        color: ScholarColors.white25,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(entry.year.toString(), style: ScholarStyles.sans(fontSize: 14, fontWeight: FontWeight.w500)),
+                          Row(
+                            children: [
+                              Text(
+                                'VIEW PDF',
+                                style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 2, color: ScholarColors.accent),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.chevron_right, size: 14, color: ScholarColors.accent),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

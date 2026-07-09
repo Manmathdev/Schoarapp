@@ -250,21 +250,28 @@ class _DashboardPageState extends State<DashboardPage> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: GlassCardSmall(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: Checkbox(
-                        value: task.done,
-                        onChanged: (v) => _onDailyTaskChanged(i, done: v),
-                        activeColor: ScholarColors.accent,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
+                    Semantics(
+                      label: task.text.isEmpty ? 'Task checkbox' : '${task.text}, ${task.done ? 'completed' : 'not completed'}',
+                      child: SizedBox(
+                        width: ScholarTokens.minTouchTarget,
+                        height: ScholarTokens.minTouchTarget,
+                        child: Center(
+                          child: Transform.scale(
+                            scale: 1.15,
+                            child: Checkbox(
+                              value: task.done,
+                              onChanged: (v) => _onDailyTaskChanged(i, done: v),
+                              activeColor: ScholarColors.accent,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: TextField(
                         controller: _controllers[i],
