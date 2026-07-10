@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme.dart';
 
 class ScholarFooter extends StatelessWidget {
   const ScholarFooter({super.key});
@@ -7,24 +6,16 @@ class ScholarFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final year = DateTime.now().year.toString();
-    final palette = context.palette;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 0),
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04)),
-        ),
+        border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),
       ),
       child: Center(
         child: Text(
           '\u00a9 $year Scholar. All Rights Reserved. Created by Manmath.',
-          style: ScholarStyles.sans(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 2.5,
-            color: palette.textMuted,
-          ),
+          style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
       ),

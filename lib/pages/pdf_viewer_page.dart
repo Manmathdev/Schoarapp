@@ -4,7 +4,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdfx/pdfx.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../theme.dart';
 
 class PdfViewerPage extends StatefulWidget {
   final String assetPath;
@@ -68,17 +67,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: palette.bgBase,
       appBar: AppBar(
-        backgroundColor: palette.bgBase,
-        elevation: 0,
-        foregroundColor: palette.textPrimary,
-        title: Text(
-          widget.title,
-          style: ScholarStyles.serif(fontSize: 18, fontWeight: FontWeight.w600, color: palette.textPrimary),
-        ),
+        title: Text(widget.title),
         actions: [
           IconButton(
             icon: _isSharing
@@ -98,10 +90,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
           options: const DefaultBuilderOptions(),
           documentLoaderBuilder: (_) => Center(
-            child: CircularProgressIndicator(color: palette.accent),
+            child: CircularProgressIndicator(color: theme.colorScheme.primary),
           ),
           pageLoaderBuilder: (_) => Center(
-            child: CircularProgressIndicator(color: palette.accent),
+            child: CircularProgressIndicator(color: theme.colorScheme.primary),
           ),
           errorBuilder: (_, error) => Center(
             child: Padding(
@@ -109,12 +101,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: palette.statusRevision),
+                  Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
                   const SizedBox(height: 16),
                   Text(
                     'Could not open this PDF.\n$error',
                     textAlign: TextAlign.center,
-                    style: ScholarStyles.sans(color: palette.textSecondary),
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ],
               ),

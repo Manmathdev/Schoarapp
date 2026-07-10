@@ -5,7 +5,6 @@ import '../theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
 import '../widgets/scholar_footer.dart';
-import '../widgets/background_orbs.dart';
 import '../widgets/scholar_dialog.dart';
 import '../services/data_service.dart';
 import '../models/resource.dart';
@@ -23,11 +22,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
   String? _errorMessage;
   late List<Resource> _resources;
   String _currentFilter = 'all';
-
-  // Set once per build() call; helper methods below read this rather than
-  // each calling Theme.of(context) independently, since they're all
-  // invoked synchronously within the same build pass.
-  late ScholarPalette _palette;
 
   final _titleController = TextEditingController();
   final _urlController = TextEditingController();
@@ -71,28 +65,20 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Future<void> _openLink(String url) async {
-    // Internal in-app destinations (e.g. the bundled PYQ archive) are routed
-    // natively instead of being treated as web links.
     if (url == '/archive') {
       Navigator.pushNamed(context, '/archive');
       return;
     }
     final uri = Uri.tryParse(url);
     if (uri == null || !uri.hasScheme) {
-      if (mounted) {
-        setState(() => _errorMessage = 'This link is not valid.');
-      }
+      if (mounted) setState(() => _errorMessage = 'This link is not valid.');
       return;
     }
     try {
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!launched && mounted) {
-        setState(() => _errorMessage = 'Could not open link.');
-      }
+      if (!launched && mounted) setState(() => _errorMessage = 'Could not open link.');
     } catch (e) {
-      if (mounted) {
-        setState(() => _errorMessage = 'Could not open link: $e');
-      }
+      if (mounted) setState(() => _errorMessage = 'Could not open link: $e');
     }
   }
 
@@ -104,7 +90,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
       _showAlert('Please enter both a title and a valid URL.');
       return;
     }
-
     final sanitizedUrl = _validateUrl(url);
     if (sanitizedUrl == null) {
       _showAlert('Please enter a valid HTTP or HTTPS URL.');
@@ -120,9 +105,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
     );
 
     HapticFeedback.lightImpact();
-    setState(() {
-      _resources.add(newResource);
-    });
+    setState(() => _resources.add(newResource));
     _dataService.saveResources(_resources).catchError((e) {
       if (mounted) setState(() => _errorMessage = 'Failed to save: $e');
     });
@@ -168,52 +151,36 @@ class _ResourcesPageState extends State<ResourcesPage> {
       context: context,
       title: 'Heads up',
       content: message,
-      actions: [
-        ScholarDialogAction(label: 'OK', isDestructiveOrPrimary: true, onPressed: () => Navigator.pop(context)),
-      ],
+      actions: [ScholarDialogAction(label: 'OK', isDestructiveOrPrimary: true, onPressed: () => Navigator.pop(context))],
     );
   }
 
   Color _getSubjectColor(String subject) {
+    final s = context.subjectColors;
     switch (subject) {
-      case 'Physics': return _palette.physics;
-      case 'Chemistry': return _palette.chemistry;
-      case 'Mathematics': return _palette.mathematics;
-      case 'English': return _palette.english;
-      case 'IT': return _palette.it;
-      case 'Sanskrit': return _palette.sanskrit;
-      default: return _palette.textMuted;
+      case 'Physics': return s.physics;
+      case 'Chemistry': return s.chemistry;
+      case 'Mathematics': return s.mathematics;
+      case 'English': return s.english;
+      case 'IT': return s.it;
+      case 'Sanskrit': return s.sanskrit;
+      default: return s.general;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    _palette = context.palette;
-    final filtered = _resources.where((r) {
-      if (_currentFilter == 'all') return true;
-      return r.subject == _currentFilter;
-    }).toList();
-
+    final filtered = _resources.where((r) => _currentFilter == 'all' || r.subject == _currentFilter).toList();
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            const BackgroundOrbs(page: 'resources'),
-            Column(
-              children: [
-                const ScholarHeader(currentRoute: '/resources'),
-                Expanded(child: _buildBody(filtered)),
-              ],
-            ),
-          ],
-        ),
-      ),
+      appBar: const ScholarHeader(currentRoute: '/resources'),
+      body: SafeArea(top: false, child: _buildBody(filtered)),
     );
   }
 
   Widget _buildBody(List<Resource> filtered) {
+    final theme = Theme.of(context);
     if (_isLoading) {
-      return Center(child: CircularProgressIndicator(color: _palette.accent));
+      return Center(child: CircularProgressIndicator(color: theme.colorScheme.primary));
     }
     if (_errorMessage != null) {
       return Center(
@@ -222,26 +189,25 @@ class _ResourcesPageState extends State<ResourcesPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: _palette.statusRevision),
+              Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
               const SizedBox(height: 16),
-              Text(_errorMessage!, textAlign: TextAlign.center, style: ScholarStyles.sans(color: _palette.textSecondary)),
+              Text(_errorMessage!, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 24),
-              ElevatedButton(onPressed: _loadResources, child: const Text('Retry')),
+              FilledButton(onPressed: _loadResources, child: const Text('Retry')),
             ],
           ),
         ),
       );
     }
     return RefreshIndicator(
-      color: _palette.accent,
       onRefresh: _loadResources,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             _buildPageHeader(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildLayout(filtered),
             const ScholarFooter(),
           ],
@@ -251,15 +217,17 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Widget _buildPageHeader() {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('LIBRARY', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: _palette.accent)),
-          const SizedBox(height: 12),
-          Text('Digital Library', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: _palette.textPrimary)),
+          Text('LIBRARY', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
           const SizedBox(height: 8),
-          Text('Curate your study materials. Find what you need, instantly.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: _palette.textSecondary)),
+          Text('Digital Library', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 4),
+          Text('Curate your study materials. Find what you need, instantly.', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -276,27 +244,21 @@ class _ResourcesPageState extends State<ResourcesPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(width: 300, child: _buildSidebar()),
-                const SizedBox(width: 48),
+                const SizedBox(width: 32),
                 Expanded(child: _buildResourceGrid(resources)),
               ],
             ),
           );
         }
-        // On phones, stacking the full filter sidebar AND the "Save a Link"
-        // form above the resource grid meant scrolling past a large form
-        // just to see saved links. Filters become a horizontal chip row
-        // (same pattern as Curriculum) and the add-form moves into a
-        // collapsed expansion tile below the grid — a standard "add new"
-        // placement that doesn't compete with existing content for space.
         return Column(
           children: [
             _buildMobileFilterChips(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _buildResourceGrid(resources),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _buildAddResourceExpansion(),
@@ -308,15 +270,15 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Widget _buildMobileFilterChips() {
-    final filters = <(String, String, Color?)>[
-      ('All Resources', 'all', null),
-      ('Physics', 'Physics', _palette.physics),
-      ('Chemistry', 'Chemistry', _palette.chemistry),
-      ('Mathematics', 'Mathematics', _palette.mathematics),
-      ('English', 'English', _palette.english),
-      ('IT', 'IT', _palette.it),
-      ('Sanskrit', 'Sanskrit', _palette.sanskrit),
-      ('General', 'General', _palette.general),
+    final filters = <(String, String)>[
+      ('All Resources', 'all'),
+      ('Physics', 'Physics'),
+      ('Chemistry', 'Chemistry'),
+      ('Mathematics', 'Mathematics'),
+      ('English', 'English'),
+      ('IT', 'IT'),
+      ('Sanskrit', 'Sanskrit'),
+      ('General', 'General'),
     ];
     return SizedBox(
       height: ScholarTokens.minTouchTarget,
@@ -326,40 +288,17 @@ class _ResourcesPageState extends State<ResourcesPage> {
         itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
-          final (label, filter, color) = filters[i];
+          final (label, filter) = filters[i];
           final isActive = _currentFilter == filter;
           return Semantics(
             button: true,
             selected: isActive,
             label: 'Filter by $label',
-            child: GestureDetector(
-              onTap: () => _setFilter(filter),
-              child: AnimatedContainer(
-                duration: ScholarTokens.motionMedium,
-                curve: ScholarTokens.motionCurve,
-                height: ScholarTokens.minTouchTarget,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: BoxDecoration(
-                  color: isActive ? _palette.accent : _palette.glassBg,
-                  borderRadius: BorderRadius.circular(50),
-                  border: Border.all(
-                    color: isActive ? _palette.accent : _palette.glassBorder,
-                    width: isActive ? 1.5 : 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    label,
-                    style: ScholarStyles.sans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isActive
-                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white)
-                          : (color ?? _palette.textSecondary),
-                    ),
-                  ),
-                ),
-              ),
+            child: ChoiceChip(
+              label: Text(label),
+              selected: isActive,
+              onSelected: (_) => _setFilter(filter),
+              avatar: filter == 'all' ? null : CircleAvatar(backgroundColor: _getSubjectColor(filter), radius: 5),
             ),
           );
         },
@@ -368,41 +307,27 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Widget _buildAddResourceExpansion() {
+    final theme = Theme.of(context);
     return GlassCard(
       padding: EdgeInsets.zero,
-      borderRadius: 20,
       child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-          childrenPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          title: Text('Save a Link', style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
-          iconColor: _palette.accent,
-          collapsedIconColor: _palette.textMuted,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          title: Text('Save a Link', style: theme.textTheme.titleMedium),
           children: [
             _buildFormField('Resource Title', _titleController, hint: 'e.g., Physics PYQ Playlist'),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _buildFormField('URL (Link)', _urlController, hint: 'https://...'),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _buildDropdown('Subject', ['Physics', 'Chemistry', 'Mathematics', 'English', 'IT', 'Sanskrit', 'General'], _selectedSubject, (v) => setState(() => _selectedSubject = v!)),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _buildDropdown('Format', ['Video', 'PDF', 'Website'], _selectedType, (v) => setState(() => _selectedType = v!)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _addResource,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _palette.accentSoft,
-                  foregroundColor: _palette.accent,
-                  elevation: 0,
-                  side: BorderSide(color: _palette.accent),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  minimumSize: const Size(0, ScholarTokens.minTouchTarget),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2, color: _palette.accent)),
-              ),
+              child: FilledButton(onPressed: _addResource, child: const Text('Save Resource')),
             ),
           ],
         ),
@@ -411,57 +336,46 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Widget _buildSidebar() {
+    final theme = Theme.of(context);
+    final s = context.subjectColors;
     return GlassCard(
-      padding: const EdgeInsets.all(32),
-      borderRadius: 20,
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Filter Library', style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
-          const SizedBox(height: 16),
+          Text('Filter Library', style: theme.textTheme.titleLarge),
+          const SizedBox(height: 14),
           _buildFilterItem('All Resources', 'all'),
-          const SizedBox(height: 8),
-          _buildFilterItem('Physics', 'Physics', color: _palette.physics),
-          const SizedBox(height: 8),
-          _buildFilterItem('Chemistry', 'Chemistry', color: _palette.chemistry),
-          const SizedBox(height: 8),
-          _buildFilterItem('Mathematics', 'Mathematics', color: _palette.mathematics),
-          const SizedBox(height: 8),
-          _buildFilterItem('English', 'English', color: _palette.english),
-          const SizedBox(height: 8),
-          _buildFilterItem('IT', 'IT', color: _palette.it),
-          const SizedBox(height: 8),
-          _buildFilterItem('Sanskrit', 'Sanskrit', color: _palette.sanskrit),
-          const SizedBox(height: 8),
-          _buildFilterItem('General', 'General', color: _palette.general),
-          const SizedBox(height: 24),
-          Divider(color: _palette.textMuted.withOpacity(0.15)),
-          const SizedBox(height: 24),
-          Text('Save a Link', style: ScholarStyles.serif(fontSize: 16, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
-          const SizedBox(height: 16),
-          _buildFormField('Resource Title', _titleController, hint: 'e.g., Physics PYQ Playlist'),
-          const SizedBox(height: 16),
-          _buildFormField('URL (Link)', _urlController, hint: 'https://...'),
-          const SizedBox(height: 16),
-          _buildDropdown('Subject', ['Physics', 'Chemistry', 'Mathematics', 'English', 'IT', 'Sanskrit', 'General'], _selectedSubject, (v) => setState(() => _selectedSubject = v!)),
-          const SizedBox(height: 16),
-          _buildDropdown('Format', ['Video', 'PDF', 'Website'], _selectedType, (v) => setState(() => _selectedType = v!)),
+          const SizedBox(height: 6),
+          _buildFilterItem('Physics', 'Physics', color: s.physics),
+          const SizedBox(height: 6),
+          _buildFilterItem('Chemistry', 'Chemistry', color: s.chemistry),
+          const SizedBox(height: 6),
+          _buildFilterItem('Mathematics', 'Mathematics', color: s.mathematics),
+          const SizedBox(height: 6),
+          _buildFilterItem('English', 'English', color: s.english),
+          const SizedBox(height: 6),
+          _buildFilterItem('IT', 'IT', color: s.it),
+          const SizedBox(height: 6),
+          _buildFilterItem('Sanskrit', 'Sanskrit', color: s.sanskrit),
+          const SizedBox(height: 6),
+          _buildFilterItem('General', 'General', color: s.general),
           const SizedBox(height: 20),
+          Divider(color: theme.colorScheme.outlineVariant),
+          const SizedBox(height: 20),
+          Text('Save a Link', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 14),
+          _buildFormField('Resource Title', _titleController, hint: 'e.g., Physics PYQ Playlist'),
+          const SizedBox(height: 14),
+          _buildFormField('URL (Link)', _urlController, hint: 'https://...'),
+          const SizedBox(height: 14),
+          _buildDropdown('Subject', ['Physics', 'Chemistry', 'Mathematics', 'English', 'IT', 'Sanskrit', 'General'], _selectedSubject, (v) => setState(() => _selectedSubject = v!)),
+          const SizedBox(height: 14),
+          _buildDropdown('Format', ['Video', 'PDF', 'Website'], _selectedType, (v) => setState(() => _selectedType = v!)),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _addResource,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _palette.accentSoft,
-                foregroundColor: _palette.accent,
-                elevation: 0,
-                side: BorderSide(color: _palette.accent),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                minimumSize: const Size(0, ScholarTokens.minTouchTarget),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2, color: _palette.accent)),
-            ),
+            child: FilledButton(onPressed: _addResource, child: const Text('Save Resource')),
           ),
         ],
       ),
@@ -470,26 +384,32 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   Widget _buildFilterItem(String label, String filter, {Color? color}) {
     final isActive = _currentFilter == filter;
+    final theme = Theme.of(context);
     return Semantics(
       button: true,
       selected: isActive,
-      child: GestureDetector(
-        onTap: () => _setFilter(filter),
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? _palette.surfaceOverlay30 : _palette.glassBg,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            style: ScholarStyles.sans(
-              fontSize: 13,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              color: color ?? (isActive ? _palette.textPrimary : _palette.textSecondary),
+      child: Material(
+        color: isActive ? theme.colorScheme.secondaryContainer : Colors.transparent,
+        borderRadius: BorderRadius.circular(ScholarTokens.shapeSM),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(ScholarTokens.shapeSM),
+          onTap: () => _setFilter(filter),
+          child: Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                if (color != null) ...[CircleAvatar(backgroundColor: color, radius: 5), const SizedBox(width: 10)],
+                Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                    color: isActive ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -498,72 +418,32 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Widget _buildFormField(String label, TextEditingController controller, {String? hint}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: _palette.textMuted)),
-        const SizedBox(height: 4),
-        TextField(
-          controller: controller,
-          style: ScholarStyles.sans(fontSize: 13, color: _palette.textPrimary),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: ScholarStyles.sans(fontSize: 13, color: _palette.textMuted, fontStyle: FontStyle.italic),
-            filled: true,
-            fillColor: _palette.surfaceOverlay40,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.accent)),
-          ),
-        ),
-      ],
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(labelText: label, hintText: hint),
     );
   }
 
   Widget _buildDropdown(String label, List<String> options, String currentValue, ValueChanged<String?> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: _palette.textMuted)),
-        const SizedBox(height: 4),
-        DropdownButtonFormField<String>(
-          value: currentValue,
-          items: options
-              .map((o) => DropdownMenuItem(
-                    value: o,
-                    child: Text(o, style: ScholarStyles.sans(fontSize: 13, color: _palette.textPrimary)),
-                  ))
-              .toList(),
-          onChanged: onChanged,
-          icon: Icon(Icons.keyboard_arrow_down, color: _palette.textMuted, size: 20),
-          dropdownColor: _palette.bgBase,
-          borderRadius: BorderRadius.circular(14),
-          style: ScholarStyles.sans(fontSize: 13, color: _palette.textPrimary),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: _palette.surfaceOverlay40,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.accent)),
-          ),
-        ),
-      ],
+    return DropdownButtonFormField<String>(
+      value: currentValue,
+      decoration: InputDecoration(labelText: label),
+      items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
+      onChanged: onChanged,
     );
   }
 
   Widget _buildResourceGrid(List<Resource> resources) {
+    final theme = Theme.of(context);
     if (resources.isEmpty) {
       return GlassCard(
-        padding: const EdgeInsets.all(48),
-        borderRadius: 20,
+        padding: const EdgeInsets.all(40),
         child: Center(
           child: Column(
             children: [
-              Text('No resources saved yet.', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 19, color: _palette.textMuted)),
-              const SizedBox(height: 8),
-              Text('Use the form to add a link.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 13, color: _palette.textMuted)),
+              Text('No resources saved yet.', textAlign: TextAlign.center, style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 6),
+              Text('Use the form to add a link.', textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             ],
           ),
         ),
@@ -572,64 +452,46 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
     final reversed = resources.reversed.toList();
     return Wrap(
-      spacing: 24,
-      runSpacing: 24,
+      spacing: 16,
+      runSpacing: 16,
       children: reversed.map((r) {
         final tagColor = _getSubjectColor(r.subject);
         return SizedBox(
           width: 300,
           child: GlassCard(
-            padding: const EdgeInsets.all(28),
-            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(r.subject, style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: tagColor)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(color: _palette.textMuted.withOpacity(0.10), borderRadius: BorderRadius.circular(50)),
-                      child: Text(r.type.toUpperCase(), style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _palette.textMuted)),
+                    Text(r.subject, style: theme.textTheme.labelSmall?.copyWith(color: tagColor)),
+                    Chip(
+                      label: Text(r.type.toUpperCase(), style: theme.textTheme.labelSmall),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(r.title, style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, height: 1.3, color: _palette.textPrimary)),
-                const SizedBox(height: 16),
-                Divider(color: _palette.textMuted.withOpacity(0.12)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 6),
+                Text(r.title, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 12),
+                Divider(color: theme.colorScheme.outlineVariant),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     OutlinedButton(
                       onPressed: () => _openLink(r.url),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _palette.textSecondary,
-                        side: BorderSide(color: _palette.textMuted.withOpacity(0.2)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        minimumSize: const Size(0, ScholarTokens.minTouchTarget),
-                        tapTargetSize: MaterialTapTargetSize.padded,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                      ),
-                      child: Text(
-                        r.url == '/archive' ? 'Open Archive' : 'Open Link',
-                        style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _palette.textSecondary),
-                      ),
+                      child: Text(r.url == '/archive' ? 'Open Archive' : 'Open Link'),
                     ),
                     Semantics(
                       button: true,
                       label: 'Remove ${r.title} from resources',
                       child: TextButton(
                         onPressed: () => _deleteResource(r.id),
-                        style: TextButton.styleFrom(
-                          foregroundColor: _palette.textMuted,
-                          minimumSize: const Size(0, ScholarTokens.minTouchTarget),
-                          tapTargetSize: MaterialTapTargetSize.padded,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        child: Text('Remove', style: ScholarStyles.sans(fontSize: 11, color: _palette.textMuted, decoration: TextDecoration.underline)),
+                        child: const Text('Remove'),
                       ),
                     ),
                   ],

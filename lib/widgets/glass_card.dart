@@ -1,12 +1,11 @@
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import '../theme.dart';
 
-/// Glass-morphism card matching the website's `.glass` utility class, with
-/// slightly boosted depth cues (stronger shadow, inner highlight) since the
-/// subtle web version reads as flat on a small, brighter phone screen.
-/// Colors resolve from the current theme (light or dark) via context, so
-/// this card automatically adapts when the user switches modes.
+/// Standard Material 3 surface card: flat, tonal elevation via
+/// surfaceContainer color roles rather than shadows or blur — this
+/// replaces the earlier glass-morphism treatment as part of the move to
+/// Material 3 Expressive. Named GlassCard still for now to avoid renaming
+/// every call site across the app; it is a plain M3 card underneath.
 class GlassCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -21,7 +20,7 @@ class GlassCard extends StatefulWidget {
     required this.child,
     this.padding,
     this.margin,
-    this.borderRadius = 20,
+    this.borderRadius = ScholarTokens.shapeLG,
     this.width,
     this.height,
     this.onTap,
@@ -41,73 +40,26 @@ class _GlassCardState extends State<GlassCard> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.colors;
 
     final card = Container(
       width: widget.width,
       height: widget.height,
       margin: widget.margin,
       decoration: BoxDecoration(
-        color: palette.glassBg,
+        color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: Border.all(color: palette.glassBorder),
-        boxShadow: ScholarTokens.elevation3(palette.shadowColor, isDark: isDark),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        child: Stack(
-          children: [
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                // A very faint vertical gradient inside the glass itself
-                // gives the card a sense of catching light from above,
-                // instead of reading as a single flat translucent block.
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withOpacity(isDark ? 0.05 : 0.10),
-                      Colors.white.withOpacity(0.0),
-                    ],
-                    stops: const [0.0, 0.3],
-                  ),
-                ),
-                padding: widget.padding ?? const EdgeInsets.all(40),
-                child: widget.child,
-              ),
-            ),
-            // Top shine line, matching the website's `.glass::before`.
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      palette.glassShine,
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: Padding(
+        padding: widget.padding ?? const EdgeInsets.all(24),
+        child: widget.child,
       ),
     );
 
     if (widget.onTap == null) return card;
 
-    // Subtle press-scale feedback — a standard native interaction cue
-    // (matches the depress behavior of iOS buttons and Material's own
-    // state-layer conventions) so tappable cards feel responsive rather
-    // than static.
+    // Subtle press-scale feedback plus Material's own state-layer ripple
+    // — standard M3 interactive surface behavior.
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -115,8 +67,6 @@ class _GlassCardState extends State<GlassCard> {
         borderRadius: BorderRadius.circular(widget.borderRadius),
         onTap: widget.onTap,
         onHighlightChanged: _setPressed,
-        splashColor: palette.accentSoft,
-        highlightColor: palette.accentSoft,
         child: AnimatedScale(
           scale: _pressed ? 0.98 : 1.0,
           duration: ScholarTokens.motionFast,
@@ -128,6 +78,8 @@ class _GlassCardState extends State<GlassCard> {
   }
 }
 
+/// A smaller nested surface, one tonal step up from GlassCard, used for
+/// pills/rows inside a card (e.g. daily task rows, habit rows).
 class GlassCardSmall extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -137,19 +89,16 @@ class GlassCardSmall extends StatelessWidget {
     super.key,
     required this.child,
     this.padding,
-    this.borderRadius = 12,
+    this.borderRadius = ScholarTokens.shapeMD,
   });
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: palette.surfaceOverlay25,
+        color: colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: palette.surfaceOverlay30),
-        boxShadow: ScholarTokens.elevation1(palette.shadowColor, isDark: isDark),
       ),
       child: Padding(
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 11),

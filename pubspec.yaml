@@ -26,13 +26,6 @@ flutter:
   assets:
     - assets/pyqs/
   fonts:
-    - family: PlayfairDisplay
+    - family: RobotoFlex
       fonts:
-        - asset: assets/fonts/PlayfairDisplay-Variable.ttf
-        - asset: assets/fonts/PlayfairDisplay-Italic-Variable.ttf
-          style: italic
-    - family: Montserrat
-      fonts:
-        - asset: assets/fonts/Montserrat-Variable.ttf
-        - asset: assets/fonts/Montserrat-Italic-Variable.ttf
-          style: italic
+        - asset: assets/fonts/RobotoFlex-Variable.ttf

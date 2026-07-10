@@ -4,7 +4,6 @@ import '../theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/scholar_header.dart';
 import '../widgets/scholar_footer.dart';
-import '../widgets/background_orbs.dart';
 import '../widgets/scholar_dialog.dart';
 import '../services/data_service.dart';
 import '../models/task.dart';
@@ -23,14 +22,6 @@ class _CurriculumPageState extends State<CurriculumPage> {
   late List<Task> _tasks;
   String _currentFilter = 'all';
 
-  // Set once per build() call; helper methods below read this rather than
-  // each calling Theme.of(context) independently, since they're all
-  // invoked synchronously within the same build pass.
-  late ScholarPalette _palette;
-
-  // Persistent per-task controllers, keyed by task id, so rebuilds (from
-  // status changes, filter changes, etc.) don't reset cursor position or
-  // interrupt typing in the notes field.
   final Map<int, TextEditingController> _notesControllers = {};
 
   TextEditingController _notesControllerFor(Task task) {
@@ -148,56 +139,37 @@ class _CurriculumPageState extends State<CurriculumPage> {
     }
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(BuildContext context, String status) {
+    final s = context.subjectColors;
     switch (status) {
-      case 'Not Started':
-        return _palette.statusNotStarted;
-      case 'In Progress':
-        return _palette.statusInProgress;
-      case 'Revision Needed':
-        return _palette.statusRevision;
-      case 'Mastered':
-        return _palette.statusMastered;
-      default:
-        return _palette.textMuted;
+      case 'Not Started': return s.statusNotStarted;
+      case 'In Progress': return s.statusInProgress;
+      case 'Revision Needed': return s.statusRevision;
+      case 'Mastered': return s.statusMastered;
+      default: return s.general;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    _palette = context.palette;
     final filtered = _tasks.where((t) {
       if (_currentFilter == 'all') return t.status == 'In Progress';
       return t.subject == _currentFilter;
     }).toList();
 
     final pageTitle = _currentFilter == 'all' ? 'Active Dashboard' : '$_currentFilter Curriculum';
-    final pageSubtitle = _currentFilter == 'all'
-        ? 'Chapters currently in progress.'
-        : 'Complete syllabus breakdown.';
+    final pageSubtitle = _currentFilter == 'all' ? 'Chapters currently in progress.' : 'Complete syllabus breakdown.';
 
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            const BackgroundOrbs(page: 'curriculum'),
-            Column(
-              children: [
-                const ScholarHeader(currentRoute: '/curriculum'),
-                Expanded(child: _buildBody(pageTitle, pageSubtitle, filtered)),
-              ],
-            ),
-          ],
-        ),
-      ),
+      appBar: const ScholarHeader(currentRoute: '/curriculum'),
+      body: SafeArea(top: false, child: _buildBody(pageTitle, pageSubtitle, filtered)),
     );
   }
 
   Widget _buildBody(String title, String subtitle, List<Task> filtered) {
+    final theme = Theme.of(context);
     if (_isLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: _palette.accent),
-      );
+      return Center(child: CircularProgressIndicator(color: theme.colorScheme.primary));
     }
     if (_errorMessage != null) {
       return Center(
@@ -206,26 +178,25 @@ class _CurriculumPageState extends State<CurriculumPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: _palette.statusRevision),
+              Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
               const SizedBox(height: 16),
-              Text(_errorMessage!, textAlign: TextAlign.center, style: ScholarStyles.sans(color: _palette.textSecondary)),
+              Text(_errorMessage!, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 24),
-              ElevatedButton(onPressed: _loadTasks, child: const Text('Retry')),
+              FilledButton(onPressed: _loadTasks, child: const Text('Retry')),
             ],
           ),
         ),
       );
     }
     return RefreshIndicator(
-      color: _palette.accent,
       onRefresh: _loadTasks,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             _buildPageHeader(title, subtitle),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildLayout(filtered),
             const ScholarFooter(),
           ],
@@ -235,15 +206,17 @@ class _CurriculumPageState extends State<CurriculumPage> {
   }
 
   Widget _buildPageHeader(String title, String subtitle) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SYLLABUS', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: _palette.accent)),
-          const SizedBox(height: 12),
-          Text(title, textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: _palette.textPrimary)),
+          Text('SYLLABUS', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
           const SizedBox(height: 8),
-          Text(subtitle, textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: _palette.textSecondary)),
+          Text(title, style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 4),
+          Text(subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -260,36 +233,24 @@ class _CurriculumPageState extends State<CurriculumPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(width: 260, child: _buildSidebar()),
-                const SizedBox(width: 48),
+                const SizedBox(width: 32),
                 Expanded(child: _buildTaskGrid(filtered)),
               ],
             ),
           );
         }
-        // On phones, a tall vertical filter sidebar sitting above the task
-        // grid forces a lot of scrolling before reaching any content. A
-        // horizontal scrolling chip row keeps filters reachable with a
-        // thumb swipe while getting out of the way of the actual tasks.
         return Column(
           children: [
             _buildMobileFilterChips(),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: TextButton.icon(
                   onPressed: _resetCurriculum,
-                  icon: Icon(Icons.refresh, size: 14, color: _palette.textMuted),
-                  label: Text(
-                    'Reset Curriculum',
-                    style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, color: _palette.textMuted),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(0, ScholarTokens.minTouchTarget),
-                    tapTargetSize: MaterialTapTargetSize.padded,
-                  ),
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Reset Curriculum'),
                 ),
               ),
             ),
@@ -305,14 +266,15 @@ class _CurriculumPageState extends State<CurriculumPage> {
   }
 
   Widget _buildMobileFilterChips() {
-    final filters = <(String, String, Color?)>[
-      ('All Active', 'all', null),
-      ('Physics', 'Physics', _palette.physics),
-      ('Chemistry', 'Chemistry', _palette.chemistry),
-      ('Mathematics', 'Mathematics', _palette.mathematics),
-      ('English', 'English', _palette.english),
-      ('IT', 'IT', _palette.it),
-      ('Sanskrit', 'Sanskrit', _palette.sanskrit),
+    final s = context.subjectColors;
+    final filters = <(String, String)>[
+      ('All Active', 'all'),
+      ('Physics', 'Physics'),
+      ('Chemistry', 'Chemistry'),
+      ('Mathematics', 'Mathematics'),
+      ('English', 'English'),
+      ('IT', 'IT'),
+      ('Sanskrit', 'Sanskrit'),
     ];
     return SizedBox(
       height: ScholarTokens.minTouchTarget,
@@ -322,40 +284,17 @@ class _CurriculumPageState extends State<CurriculumPage> {
         itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
-          final (label, filter, color) = filters[i];
+          final (label, filter) = filters[i];
           final isActive = _currentFilter == filter;
           return Semantics(
             button: true,
             selected: isActive,
             label: 'Filter by $label',
-            child: GestureDetector(
-              onTap: () => _setFilter(filter),
-              child: AnimatedContainer(
-                duration: ScholarTokens.motionMedium,
-                curve: ScholarTokens.motionCurve,
-                height: ScholarTokens.minTouchTarget,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: BoxDecoration(
-                  color: isActive ? _palette.accent : _palette.glassBg,
-                  borderRadius: BorderRadius.circular(50),
-                  border: Border.all(
-                    color: isActive ? _palette.accent : _palette.glassBorder,
-                    width: isActive ? 1.5 : 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    label,
-                    style: ScholarStyles.sans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isActive
-                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white)
-                          : (color ?? _palette.textSecondary),
-                    ),
-                  ),
-                ),
-              ),
+            child: ChoiceChip(
+              label: Text(label),
+              selected: isActive,
+              onSelected: (_) => _setFilter(filter),
+              avatar: filter == 'all' ? null : CircleAvatar(backgroundColor: _colorForSubject(s, filter), radius: 5),
             ),
           );
         },
@@ -363,43 +302,50 @@ class _CurriculumPageState extends State<CurriculumPage> {
     );
   }
 
+  Color _colorForSubject(ScholarSubjectColors s, String subject) {
+    switch (subject) {
+      case 'Physics': return s.physics;
+      case 'Chemistry': return s.chemistry;
+      case 'Mathematics': return s.mathematics;
+      case 'English': return s.english;
+      case 'IT': return s.it;
+      case 'Sanskrit': return s.sanskrit;
+      default: return s.general;
+    }
+  }
+
   Widget _buildSidebar() {
+    final theme = Theme.of(context);
+    final s = context.subjectColors;
     return GlassCard(
-      padding: const EdgeInsets.all(32),
-      borderRadius: 20,
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Curriculum', style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
-          const SizedBox(height: 24),
+          Text('Curriculum', style: theme.textTheme.titleLarge),
+          const SizedBox(height: 20),
           _buildFilterItem('All Active', 'all'),
-          const SizedBox(height: 8),
-          _buildFilterItem('Physics', 'Physics', color: _palette.physics),
-          const SizedBox(height: 8),
-          _buildFilterItem('Chemistry', 'Chemistry', color: _palette.chemistry),
-          const SizedBox(height: 8),
-          _buildFilterItem('Mathematics', 'Mathematics', color: _palette.mathematics),
-          const SizedBox(height: 8),
-          _buildFilterItem('English', 'English', color: _palette.english),
-          const SizedBox(height: 8),
-          _buildFilterItem('IT', 'IT', color: _palette.it),
-          const SizedBox(height: 8),
-          _buildFilterItem('Sanskrit', 'Sanskrit', color: _palette.sanskrit),
-          const SizedBox(height: 32),
-          Text('System', style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
+          _buildFilterItem('Physics', 'Physics', color: s.physics),
+          const SizedBox(height: 6),
+          _buildFilterItem('Chemistry', 'Chemistry', color: s.chemistry),
+          const SizedBox(height: 6),
+          _buildFilterItem('Mathematics', 'Mathematics', color: s.mathematics),
+          const SizedBox(height: 6),
+          _buildFilterItem('English', 'English', color: s.english),
+          const SizedBox(height: 6),
+          _buildFilterItem('IT', 'IT', color: s.it),
+          const SizedBox(height: 6),
+          _buildFilterItem('Sanskrit', 'Sanskrit', color: s.sanskrit),
+          const SizedBox(height: 24),
+          Text('System', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: OutlinedButton.icon(
               onPressed: _resetCurriculum,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _palette.textMuted,
-                side: BorderSide(color: _palette.textMuted),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                minimumSize: const Size(0, ScholarTokens.minTouchTarget),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text('Reset / Reload Curriculum', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, color: _palette.textMuted)),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Reset / Reload Curriculum'),
             ),
           ),
         ],
@@ -409,26 +355,35 @@ class _CurriculumPageState extends State<CurriculumPage> {
 
   Widget _buildFilterItem(String label, String filter, {Color? color}) {
     final isActive = _currentFilter == filter;
+    final theme = Theme.of(context);
     return Semantics(
       button: true,
       selected: isActive,
-      child: GestureDetector(
-        onTap: () => _setFilter(filter),
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? _palette.surfaceOverlay30 : _palette.glassBg,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            style: ScholarStyles.sans(
-              fontSize: 13,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              color: color ?? (isActive ? _palette.textPrimary : _palette.textSecondary),
+      child: Material(
+        color: isActive ? theme.colorScheme.secondaryContainer : Colors.transparent,
+        borderRadius: BorderRadius.circular(ScholarTokens.shapeSM),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(ScholarTokens.shapeSM),
+          onTap: () => _setFilter(filter),
+          child: Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(minHeight: ScholarTokens.minTouchTarget),
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                if (color != null) ...[
+                  CircleAvatar(backgroundColor: color, radius: 5),
+                  const SizedBox(width: 10),
+                ],
+                Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                    color: isActive ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -437,55 +392,49 @@ class _CurriculumPageState extends State<CurriculumPage> {
   }
 
   Widget _buildTaskGrid(List<Task> tasks) {
+    final theme = Theme.of(context);
     if (tasks.isEmpty) {
       final emptyMessage = _currentFilter == 'all'
           ? 'No chapters in progress.\nSelect a subject to update a chapter to "In Progress".'
           : 'All chapters accounted for.';
       return GlassCard(
-        padding: const EdgeInsets.all(48),
-        borderRadius: 20,
+        padding: const EdgeInsets.all(40),
         child: Center(
-          child: Text(emptyMessage, textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 19, color: _palette.textMuted)),
+          child: Text(emptyMessage, textAlign: TextAlign.center, style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ),
       );
     }
 
     return Wrap(
-      spacing: 24,
-      runSpacing: 24,
+      spacing: 16,
+      runSpacing: 16,
       children: tasks.map((task) {
         final isMastered = task.status == 'Mastered';
         return SizedBox(
           width: 300,
           child: GlassCard(
-            padding: const EdgeInsets.all(28),
-            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  decoration: BoxDecoration(
-                    border: Border(left: BorderSide(color: task.colorValue, width: 3)),
-                  ),
+                  decoration: BoxDecoration(border: Border(left: BorderSide(color: task.colorValue, width: 3))),
                   padding: const EdgeInsets.only(left: 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(task.subject.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: task.colorValue)),
+                      Text(task.subject.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: task.colorValue)),
                       const SizedBox(height: 4),
-                      Text(
-                        task.title,
-                        style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600, color: _palette.textPrimary),
-                      ),
-                      const SizedBox(height: 8),
+                      Text(task.title, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 6),
                       TextField(
                         controller: _notesControllerFor(task),
                         onChanged: (v) => _saveNotes(task.id, v),
                         maxLines: 3,
-                        style: ScholarStyles.sans(fontSize: 13, color: _palette.textSecondary, height: 1.5),
-                        decoration: InputDecoration(
+                        style: theme.textTheme.bodySmall,
+                        decoration: const InputDecoration(
                           hintText: 'Add study notes, formulas, or page numbers...',
-                          hintStyle: ScholarStyles.sans(fontSize: 13, color: _palette.textMuted, fontStyle: FontStyle.italic),
+                          filled: false,
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -494,36 +443,23 @@ class _CurriculumPageState extends State<CurriculumPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Divider(color: _palette.textMuted.withOpacity(0.15)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Divider(color: theme.colorScheme.outlineVariant),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(task.status.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _getStatusColor(task.status))),
+                    Text(task.status.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: _getStatusColor(context, task.status))),
                     Semantics(
                       button: true,
                       label: isMastered ? 'Chapter mastered' : 'Update status, currently ${task.status}',
-                      child: TextButton(
-                        onPressed: () => _cycleStatus(task.id),
-                        style: TextButton.styleFrom(
-                          backgroundColor: isMastered ? _palette.surfaceOverlay25 : _palette.accentSoft,
-                          foregroundColor: isMastered ? _palette.textMuted : _palette.accent,
-                          padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 8),
-                          minimumSize: const Size(64, ScholarTokens.minTouchTarget),
-                          tapTargetSize: MaterialTapTargetSize.padded,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                        ),
-                        child: Text(
-                          isMastered ? 'Done' : 'Update Status',
-                          style: ScholarStyles.sans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.5,
-                            color: isMastered ? _palette.textMuted : _palette.accent,
-                          ),
-                        ),
-                      ),
+                      child: isMastered
+                          ? TonalActionChip(label: 'Done', onTap: () => _cycleStatus(task.id))
+                          : FilledButton.tonal(
+                              onPressed: () => _cycleStatus(task.id),
+                              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                              child: const Text('Update Status'),
+                            ),
                     ),
                   ],
                 ),
@@ -532,6 +468,28 @@ class _CurriculumPageState extends State<CurriculumPage> {
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+/// Small helper chip-button used for the "Done" state where a full
+/// FilledButton.tonal would look too prominent for a completed item.
+class TonalActionChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const TonalActionChip({super.key, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: colors.surfaceContainerHighest,
+        foregroundColor: colors.onSurfaceVariant,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+      ),
+      child: Text(label),
     );
   }
 }

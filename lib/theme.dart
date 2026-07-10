@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
 
-/// A custom ThemeExtension carrying Scholar's palette. Using Flutter's own
-/// ThemeExtension mechanism (rather than static color constants) means
-/// colors are resolved at runtime through Theme.of(context), which is what
-/// actually makes light/dark mode possible — a widget tree that reads
-/// hardcoded static constants can never respond to a theme change.
-@immutable
-class ScholarPalette extends ThemeExtension<ScholarPalette> {
-  final Color bgBase;
-  final Color glassBg;
-  final Color glassBorder;
-  final Color glassShine;
-  final Color textPrimary;
-  final Color textSecondary;
-  final Color textMuted;
-  final Color accent;
-  final Color accentSoft;
-  final Color surfaceOverlay25;
-  final Color surfaceOverlay30;
-  final Color surfaceOverlay40;
-  final Color shadowColor;
+/// Scholar's Material 3 seed color — a growth/study-themed green, from
+/// which the entire tonal palette (light and dark) is algorithmically
+/// derived via ColorScheme.fromSeed. This is the actual "Material You"
+/// mechanism: one seed color generates a full harmonized palette rather
+/// than hand-picked individual colors.
+const Color scholarSeedColor = Color(0xFF2E7D5B);
 
+/// Subject tag colors are a fixed, deliberately distinct set (so Physics
+/// vs Chemistry vs Math are always visually distinguishable) rather than
+/// derived from the seed — M3 seed derivation is for the *system* surfaces
+/// and primary/secondary/tertiary roles, not for arbitrary category tags.
+@immutable
+class ScholarSubjectColors extends ThemeExtension<ScholarSubjectColors> {
   final Color physics;
   final Color chemistry;
   final Color mathematics;
@@ -28,28 +20,13 @@ class ScholarPalette extends ThemeExtension<ScholarPalette> {
   final Color it;
   final Color sanskrit;
   final Color general;
-
   final Color statusNotStarted;
   final Color statusInProgress;
   final Color statusRevision;
   final Color statusMastered;
-
   final List<Color> dayBorderColors;
 
-  const ScholarPalette({
-    required this.bgBase,
-    required this.glassBg,
-    required this.glassBorder,
-    required this.glassShine,
-    required this.textPrimary,
-    required this.textSecondary,
-    required this.textMuted,
-    required this.accent,
-    required this.accentSoft,
-    required this.surfaceOverlay25,
-    required this.surfaceOverlay30,
-    required this.surfaceOverlay40,
-    required this.shadowColor,
+  const ScholarSubjectColors({
     required this.physics,
     required this.chemistry,
     required this.mathematics,
@@ -64,104 +41,60 @@ class ScholarPalette extends ThemeExtension<ScholarPalette> {
     required this.dayBorderColors,
   });
 
-  /// Warm cream palette, matching the original website exactly.
-  static const light = ScholarPalette(
-    bgBase: Color(0xFFE8E2D9),
-    glassBg: Color(0x8FFFFFFF),
-    glassBorder: Color(0x99FFFFFF),
-    glassShine: Color(0x80FFFFFF),
-    textPrimary: Color(0xFF1C1917),
-    textSecondary: Color(0xFF574F49),
-    textMuted: Color(0xFF6B6259),
-    accent: Color(0xFFB3916E),
-    accentSoft: Color(0x1AB3916E),
-    surfaceOverlay25: Color(0x40FFFFFF),
-    surfaceOverlay30: Color(0x4DFFFFFF),
-    surfaceOverlay40: Color(0x66FFFFFF),
-    shadowColor: Color(0xFF000000),
+  static const light = ScholarSubjectColors(
     physics: Color(0xFF1565C0),
     chemistry: Color(0xFF2E7D32),
     mathematics: Color(0xFFC2185B),
     english: Color(0xFF00796B),
     it: Color(0xFF7B1FA2),
-    sanskrit: Color(0xFFFF8F00),
-    general: Color(0xFF9C9490),
-    statusNotStarted: Color(0xFF9C9490),
-    statusInProgress: Color(0xFFB3916E),
-    statusRevision: Color(0xFFE65100),
+    sanskrit: Color(0xFFEF6C00),
+    general: Color(0xFF6D6A64),
+    statusNotStarted: Color(0xFF6D6A64),
+    statusInProgress: Color(0xFF2E7D5B),
+    statusRevision: Color(0xFFB3261E),
     statusMastered: Color(0xFF2E7D32),
     dayBorderColors: [
       Color(0xFF1565C0),
       Color(0xFF2E7D32),
       Color(0xFFC2185B),
-      Color(0xFFE65100),
+      Color(0xFFEF6C00),
       Color(0xFF7B1FA2),
       Color(0xFF00796B),
-      Color(0xFFB3916E),
+      Color(0xFF2E7D5B),
     ],
   );
 
-  /// Dark variant: a warm charcoal (not pure black, which crushes the
-  /// glassmorphism effect and reads harshly) with the same accent hue
-  /// brightened slightly for sufficient contrast on a dark surface, and
-  /// subject colors lifted in luminance so they stay legible.
-  static const dark = ScholarPalette(
-    bgBase: Color(0xFF1A1714),
-    glassBg: Color(0x33FFFFFF),
-    glassBorder: Color(0x26FFFFFF),
-    glassShine: Color(0x1AFFFFFF),
-    textPrimary: Color(0xFFF2EEE9),
-    textSecondary: Color(0xFFC9C2B9),
-    textMuted: Color(0xFF9C948A),
-    accent: Color(0xFFD8B48D),
-    accentSoft: Color(0x26D8B48D),
-    surfaceOverlay25: Color(0x1FFFFFFF),
-    surfaceOverlay30: Color(0x26FFFFFF),
-    surfaceOverlay40: Color(0x33FFFFFF),
-    shadowColor: Color(0xFF000000),
-    physics: Color(0xFF64B5F6),
-    chemistry: Color(0xFF81C784),
-    mathematics: Color(0xFFF06292),
-    english: Color(0xFF4DB6AC),
-    it: Color(0xFFBA68C8),
-    sanskrit: Color(0xFFFFB74D),
-    general: Color(0xFFAFA79D),
-    statusNotStarted: Color(0xFFAFA79D),
-    statusInProgress: Color(0xFFD8B48D),
-    statusRevision: Color(0xFFFF8A65),
-    statusMastered: Color(0xFF81C784),
+  static const dark = ScholarSubjectColors(
+    physics: Color(0xFF9ECAFF),
+    chemistry: Color(0xFF8DD79A),
+    mathematics: Color(0xFFF3A9C6),
+    english: Color(0xFF80CBC4),
+    it: Color(0xFFD4A6E0),
+    sanskrit: Color(0xFFFFB870),
+    general: Color(0xFFC9C5BD),
+    statusNotStarted: Color(0xFFC9C5BD),
+    statusInProgress: Color(0xFF9BD9AE),
+    statusRevision: Color(0xFFFFB4AB),
+    statusMastered: Color(0xFF8DD79A),
     dayBorderColors: [
-      Color(0xFF64B5F6),
-      Color(0xFF81C784),
-      Color(0xFFF06292),
-      Color(0xFFFF8A65),
-      Color(0xFFBA68C8),
-      Color(0xFF4DB6AC),
-      Color(0xFFD8B48D),
+      Color(0xFF9ECAFF),
+      Color(0xFF8DD79A),
+      Color(0xFFF3A9C6),
+      Color(0xFFFFB870),
+      Color(0xFFD4A6E0),
+      Color(0xFF80CBC4),
+      Color(0xFF9BD9AE),
     ],
   );
 
   @override
-  ScholarPalette copyWith() => this;
+  ScholarSubjectColors copyWith() => this;
 
   @override
-  ScholarPalette lerp(ThemeExtension<ScholarPalette>? other, double t) {
-    if (other is! ScholarPalette) return this;
+  ScholarSubjectColors lerp(ThemeExtension<ScholarSubjectColors>? other, double t) {
+    if (other is! ScholarSubjectColors) return this;
     Color c(Color a, Color b) => Color.lerp(a, b, t)!;
-    return ScholarPalette(
-      bgBase: c(bgBase, other.bgBase),
-      glassBg: c(glassBg, other.glassBg),
-      glassBorder: c(glassBorder, other.glassBorder),
-      glassShine: c(glassShine, other.glassShine),
-      textPrimary: c(textPrimary, other.textPrimary),
-      textSecondary: c(textSecondary, other.textSecondary),
-      textMuted: c(textMuted, other.textMuted),
-      accent: c(accent, other.accent),
-      accentSoft: c(accentSoft, other.accentSoft),
-      surfaceOverlay25: c(surfaceOverlay25, other.surfaceOverlay25),
-      surfaceOverlay30: c(surfaceOverlay30, other.surfaceOverlay30),
-      surfaceOverlay40: c(surfaceOverlay40, other.surfaceOverlay40),
-      shadowColor: c(shadowColor, other.shadowColor),
+    return ScholarSubjectColors(
       physics: c(physics, other.physics),
       chemistry: c(chemistry, other.chemistry),
       mathematics: c(mathematics, other.mathematics),
@@ -173,26 +106,21 @@ class ScholarPalette extends ThemeExtension<ScholarPalette> {
       statusInProgress: c(statusInProgress, other.statusInProgress),
       statusRevision: c(statusRevision, other.statusRevision),
       statusMastered: c(statusMastered, other.statusMastered),
-      dayBorderColors: List.generate(
-        dayBorderColors.length,
-        (i) => c(dayBorderColors[i], other.dayBorderColors[i]),
-      ),
+      dayBorderColors: List.generate(dayBorderColors.length, (i) => c(dayBorderColors[i], other.dayBorderColors[i])),
     );
   }
 }
 
-/// Convenience accessor so widgets can write `context.palette.accent`
-/// instead of the more verbose Theme.of(context).extension<...>() call.
-extension ScholarPaletteX on BuildContext {
-  ScholarPalette get palette => Theme.of(this).extension<ScholarPalette>()!;
+/// Convenience accessors so widgets can write `context.colors.primary`
+/// and `context.subjectColors.physics` instead of the more verbose
+/// Theme.of(context) calls.
+extension ScholarThemeX on BuildContext {
+  ColorScheme get colors => Theme.of(this).colorScheme;
+  ScholarSubjectColors get subjectColors => Theme.of(this).extension<ScholarSubjectColors>()!;
 }
 
-/// Design tokens enforcing common platform standards:
-/// - Spacing on a 4pt grid (Material spacing system)
-/// - Minimum touch targets of 48x48dp (Material) / 44x44pt (HIG) — we use
-///   the stricter 48dp everywhere so both platforms are comfortably covered
-/// - A consistent elevation/shadow scale instead of one-off shadow values
-/// - Shared motion durations/curves instead of arbitrary per-widget numbers
+/// Design tokens for spacing, touch targets, motion, and Material 3's
+/// shape scale (extra-small through extra-large corner radii).
 class ScholarTokens {
   ScholarTokens._();
 
@@ -207,120 +135,133 @@ class ScholarTokens {
   static const double space10 = 40;
   static const double space12 = 48;
 
-  // Minimum interactive touch target (Material 48dp / HIG 44pt — using the
-  // larger of the two so both platforms are satisfied).
+  // Minimum interactive touch target (Material 48dp / HIG 44pt).
   static const double minTouchTarget = 48;
 
-  // Motion
+  // Motion — M3 standard easing and durations.
   static const Duration motionFast = Duration(milliseconds: 150);
   static const Duration motionMedium = Duration(milliseconds: 220);
   static const Duration motionSlow = Duration(milliseconds: 320);
   static const Curve motionCurve = Curves.easeOutCubic;
+  static const Curve motionEmphasized = Cubic(0.2, 0.0, 0, 1.0);
 
-  // Elevation shadow presets, parameterized by the theme's own shadow color
-  // so dark mode can use a pure-black shadow while light mode does too but
-  // at different opacities suited to each surface brightness.
-  static List<BoxShadow> elevation1(Color shadowColor, {bool isDark = false}) => [
-        BoxShadow(color: shadowColor.withOpacity(isDark ? 0.24 : 0.04), blurRadius: 4, offset: const Offset(0, 1)),
-        BoxShadow(color: shadowColor.withOpacity(isDark ? 0.18 : 0.03), blurRadius: 2, offset: const Offset(0, 1)),
-      ];
-  static List<BoxShadow> elevation2(Color shadowColor, {bool isDark = false}) => [
-        BoxShadow(color: shadowColor.withOpacity(isDark ? 0.32 : 0.06), blurRadius: 12, offset: const Offset(0, 4)),
-        BoxShadow(color: shadowColor.withOpacity(isDark ? 0.22 : 0.04), blurRadius: 4, offset: const Offset(0, 1)),
-      ];
-  static List<BoxShadow> elevation3(Color shadowColor, {bool isDark = false}) => [
-        BoxShadow(color: shadowColor.withOpacity(isDark ? 0.40 : 0.09), blurRadius: 28, offset: const Offset(0, 10)),
-        BoxShadow(color: shadowColor.withOpacity(isDark ? 0.26 : 0.04), blurRadius: 6, offset: const Offset(0, 2)),
-      ];
-}
-
-/// Font families are bundled directly as assets (see pubspec.yaml) rather
-/// than fetched over the network via google_fonts. This guarantees the
-/// correct typeface renders every time, even offline or on first launch —
-/// a network-dependent approach would silently fall back to the system
-/// font (Roboto) when the device had no connectivity at first load.
-class ScholarStyles {
-  ScholarStyles._();
-
-  static const String _serifFamily = 'PlayfairDisplay';
-  static const String _sansFamily = 'Montserrat';
-
-  static TextStyle serif({
-    double fontSize = 16,
-    FontWeight fontWeight = FontWeight.w400,
-    double? letterSpacing,
-    double? height,
-    required Color color,
-    FontStyle fontStyle = FontStyle.normal,
-  }) {
-    return TextStyle(
-      fontFamily: _serifFamily,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      letterSpacing: letterSpacing,
-      height: height,
-      color: color,
-      fontStyle: fontStyle,
-    );
-  }
-
-  static TextStyle sans({
-    double fontSize = 16,
-    FontWeight fontWeight = FontWeight.w400,
-    double? letterSpacing,
-    double? height,
-    required Color color,
-    FontStyle fontStyle = FontStyle.normal,
-    TextDecoration decoration = TextDecoration.none,
-  }) {
-    return TextStyle(
-      fontFamily: _sansFamily,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      letterSpacing: letterSpacing,
-      height: height,
-      color: color,
-      fontStyle: fontStyle,
-      decoration: decoration,
-    );
-  }
+  // M3 shape scale (corner radii).
+  static const double shapeXS = 4;
+  static const double shapeSM = 8;
+  static const double shapeMD = 12;
+  static const double shapeLG = 16;
+  static const double shapeXL = 28;
+  static const double shapeFull = 999;
 }
 
 class ScholarTheme {
   ScholarTheme._();
 
-  static ThemeData get light => _build(ScholarPalette.light, Brightness.light);
-  static ThemeData get dark => _build(ScholarPalette.dark, Brightness.dark);
+  static ThemeData get light => _build(Brightness.light);
+  static ThemeData get dark => _build(Brightness.dark);
 
-  static ThemeData _build(ScholarPalette palette, Brightness brightness) {
-    return ThemeData(
+  static ThemeData _build(Brightness brightness) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: scholarSeedColor,
       brightness: brightness,
-      scaffoldBackgroundColor: palette.bgBase,
-      colorScheme: ColorScheme(
-        brightness: brightness,
-        primary: palette.accent,
-        onPrimary: brightness == Brightness.dark ? Colors.black : Colors.white,
-        secondary: palette.accent,
-        onSecondary: brightness == Brightness.dark ? Colors.black : Colors.white,
-        surface: palette.bgBase,
-        onSurface: palette.textPrimary,
-        error: palette.statusRevision,
-        onError: Colors.white,
-      ),
-      fontFamily: 'Montserrat',
-      extensions: [palette],
-      textTheme: TextTheme(
-        displayLarge: ScholarStyles.serif(fontSize: 72, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: palette.textPrimary),
-        displayMedium: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: palette.textPrimary),
-        headlineLarge: ScholarStyles.serif(fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: palette.textPrimary),
-        headlineMedium: ScholarStyles.serif(fontSize: 24, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: palette.textPrimary),
-        titleLarge: ScholarStyles.serif(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: palette.textPrimary),
-        titleMedium: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, color: palette.textPrimary),
-        bodyLarge: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: palette.textSecondary),
-        bodyMedium: ScholarStyles.sans(fontSize: 14, fontWeight: FontWeight.w400, color: palette.textPrimary),
-        bodySmall: ScholarStyles.sans(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 2.5, color: palette.textSecondary),
-        labelSmall: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 4, color: palette.accent),
-      ),
     );
+    final subjectColors = brightness == Brightness.dark ? ScholarSubjectColors.dark : ScholarSubjectColors.light;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      fontFamily: 'RobotoFlex',
+      extensions: [subjectColors],
+      textTheme: _textTheme(colorScheme),
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: colorScheme.surfaceTint,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 3,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colorScheme.surfaceContainer,
+        indicatorColor: colorScheme.secondaryContainer,
+        surfaceTintColor: Colors.transparent,
+        height: ScholarTokens.minTouchTarget + 18,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
+      cardTheme: CardThemeData(
+        color: colorScheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeLG)),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(64, ScholarTokens.minTouchTarget),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeFull)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(64, ScholarTokens.minTouchTarget),
+          side: BorderSide(color: colorScheme.outline),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeFull)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(48, ScholarTokens.minTouchTarget),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeFull)),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        selectedColor: colorScheme.secondaryContainer,
+        labelStyle: TextStyle(color: colorScheme.onSurface),
+        secondaryLabelStyle: TextStyle(color: colorScheme.onSecondaryContainer),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeFull)),
+        side: BorderSide.none,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeSM), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeSM), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeSM), borderSide: BorderSide(color: colorScheme.primary, width: 2)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ScholarTokens.shapeXL)),
+      ),
+      dividerTheme: DividerThemeData(color: colorScheme.outlineVariant, space: 1),
+    );
+  }
+
+  /// Material 3's type scale: display, headline, title, body, label — each
+  /// with small/medium/large variants, all in Roboto Flex.
+  static TextTheme _textTheme(ColorScheme colorScheme) {
+    final base = TextTheme(
+      displayLarge: const TextStyle(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25, height: 1.12),
+      displayMedium: const TextStyle(fontSize: 45, fontWeight: FontWeight.w400, height: 1.16),
+      displaySmall: const TextStyle(fontSize: 36, fontWeight: FontWeight.w400, height: 1.22),
+      headlineLarge: const TextStyle(fontSize: 32, fontWeight: FontWeight.w600, height: 1.25),
+      headlineMedium: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600, height: 1.29),
+      headlineSmall: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, height: 1.33),
+      titleLarge: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, height: 1.27),
+      titleMedium: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.15, height: 1.5),
+      titleSmall: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1, height: 1.43),
+      bodyLarge: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5, height: 1.5),
+      bodyMedium: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 1.43),
+      bodySmall: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4, height: 1.33),
+      labelLarge: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1, height: 1.43),
+      labelMedium: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5, height: 1.33),
+      labelSmall: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5, height: 1.45),
+    ).apply(
+      fontFamily: 'RobotoFlex',
+      bodyColor: colorScheme.onSurface,
+      displayColor: colorScheme.onSurface,
+    );
+    return base;
   }
 }
