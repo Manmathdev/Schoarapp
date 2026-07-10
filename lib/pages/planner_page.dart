@@ -30,6 +30,11 @@ class _PlannerPageState extends State<PlannerPage> {
   late Map<String, String> _weeklyPlan;
   late Map<int, List<bool>> _weeklyHabits;
 
+  // Set once per build() call; helper methods below read this rather than
+  // each calling Theme.of(context) independently, since they're all
+  // invoked synchronously within the same build pass.
+  late ScholarPalette _palette;
+
   final Map<String, TextEditingController> _dayControllers = {
     for (final day in _daysOfWeek) day: TextEditingController(),
   };
@@ -123,6 +128,7 @@ class _PlannerPageState extends State<PlannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = context.palette;
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -142,7 +148,7 @@ class _PlannerPageState extends State<PlannerPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: ScholarColors.accent));
+      return Center(child: CircularProgressIndicator(color: _palette.accent));
     }
     if (_errorMessage != null) {
       return Center(
@@ -151,9 +157,9 @@ class _PlannerPageState extends State<PlannerPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: ScholarColors.statusRevision),
+              Icon(Icons.error_outline, size: 48, color: _palette.statusRevision),
               const SizedBox(height: 16),
-              Text(_errorMessage!, textAlign: TextAlign.center, style: ScholarStyles.sans(color: ScholarColors.textSecondary)),
+              Text(_errorMessage!, textAlign: TextAlign.center, style: ScholarStyles.sans(color: _palette.textSecondary)),
               const SizedBox(height: 24),
               ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
             ],
@@ -162,7 +168,7 @@ class _PlannerPageState extends State<PlannerPage> {
       );
     }
     return RefreshIndicator(
-      color: ScholarColors.accent,
+      color: _palette.accent,
       onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -184,22 +190,22 @@ class _PlannerPageState extends State<PlannerPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          Text('ARCHITECT', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: ScholarColors.accent)),
+          Text('ARCHITECT', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: _palette.accent)),
           const SizedBox(height: 12),
-          Text('Weekly Architect', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1)),
+          Text('Weekly Architect', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: _palette.textPrimary)),
           const SizedBox(height: 8),
-          Text('Design your week. Execute your plan.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: ScholarColors.textSecondary)),
+          Text('Design your week. Execute your plan.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: _palette.textSecondary)),
           const SizedBox(height: 20),
           OutlinedButton(
             onPressed: _clearWeek,
             style: OutlinedButton.styleFrom(
-              foregroundColor: ScholarColors.accent,
-              side: BorderSide(color: ScholarColors.accent),
+              foregroundColor: _palette.accent,
+              side: BorderSide(color: _palette.accent),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               minimumSize: const Size(0, ScholarTokens.minTouchTarget),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
             ),
-            child: Text('Clear Entire Week', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
+            child: Text('Clear Entire Week', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: _palette.accent)),
           ),
         ],
       ),
@@ -242,7 +248,7 @@ class _PlannerPageState extends State<PlannerPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Weekly Habits', style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600)),
+          Text('Weekly Habits', style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
           const SizedBox(height: 24),
           ...List.generate(_habitsList.length, (i) {
             _weeklyHabits.putIfAbsent(i, () => List.filled(7, false));
@@ -251,7 +257,7 @@ class _PlannerPageState extends State<PlannerPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_habitsList[i].toUpperCase(), style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
+                  Text(_habitsList[i].toUpperCase(), style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _palette.textPrimary)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -273,13 +279,13 @@ class _PlannerPageState extends State<PlannerPage> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(_dayLabels[d], style: ScholarStyles.sans(fontSize: 9, color: ScholarColors.textMuted, letterSpacing: 0.5)),
+                                  Text(_dayLabels[d], style: ScholarStyles.sans(fontSize: 9, color: _palette.textMuted, letterSpacing: 0.5)),
                                   const SizedBox(height: 5),
                                   IgnorePointer(
                                     child: Checkbox(
                                       value: isChecked,
                                       onChanged: (v) => _onHabitChanged(i, d, v ?? false),
-                                      activeColor: ScholarColors.accent,
+                                      activeColor: _palette.accent,
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       visualDensity: VisualDensity.compact,
                                     ),
@@ -299,7 +305,7 @@ class _PlannerPageState extends State<PlannerPage> {
           const SizedBox(height: 24),
           Text(
             '\u201cSuccess is the sum of small efforts, repeated day in and day out.\u201d',
-            style: ScholarStyles.serif(fontSize: 12, fontStyle: FontStyle.italic, color: ScholarColors.textMuted, height: 1.6),
+            style: ScholarStyles.serif(fontSize: 12, fontStyle: FontStyle.italic, color: _palette.textMuted, height: 1.6),
           ),
         ],
       ),
@@ -313,7 +319,7 @@ class _PlannerPageState extends State<PlannerPage> {
       children: List.generate(_daysOfWeek.length, (i) {
         final day = _daysOfWeek[i];
         _weeklyPlan.putIfAbsent(day, () => '');
-        final borderColor = ScholarColors.dayBorderColors[i];
+        final borderColor = _palette.dayBorderColors[i];
         return SizedBox(
           width: 280,
           height: 260,
@@ -329,7 +335,7 @@ class _PlannerPageState extends State<PlannerPage> {
                     border: Border(top: BorderSide(color: borderColor, width: 3)),
                   ),
                   padding: const EdgeInsets.only(top: 12),
-                  child: Text(day, style: ScholarStyles.serif(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.01)),
+                  child: Text(day, style: ScholarStyles.serif(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: _palette.textPrimary)),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -339,10 +345,10 @@ class _PlannerPageState extends State<PlannerPage> {
                     maxLines: null,
                     expands: true,
                     textAlignVertical: TextAlignVertical.top,
-                    style: ScholarStyles.sans(fontSize: 14, height: 1.7),
+                    style: ScholarStyles.sans(fontSize: 14, height: 1.7, color: _palette.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'List your goals and tasks for $day',
-                      hintStyle: ScholarStyles.sans(fontSize: 14, color: ScholarColors.textMuted, fontStyle: FontStyle.italic),
+                      hintStyle: ScholarStyles.sans(fontSize: 14, color: _palette.textMuted, fontStyle: FontStyle.italic),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),

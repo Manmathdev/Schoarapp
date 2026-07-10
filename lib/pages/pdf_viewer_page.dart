@@ -68,15 +68,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Scaffold(
-      backgroundColor: ScholarColors.bgBase,
+      backgroundColor: palette.bgBase,
       appBar: AppBar(
-        backgroundColor: ScholarColors.bgBase,
+        backgroundColor: palette.bgBase,
         elevation: 0,
-        foregroundColor: ScholarColors.textPrimary,
+        foregroundColor: palette.textPrimary,
         title: Text(
           widget.title,
-          style: ScholarStyles.serif(fontSize: 18, fontWeight: FontWeight.w600),
+          style: ScholarStyles.serif(fontSize: 18, fontWeight: FontWeight.w600, color: palette.textPrimary),
         ),
         actions: [
           IconButton(
@@ -96,11 +97,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         controller: _controller,
         builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
           options: const DefaultBuilderOptions(),
-          documentLoaderBuilder: (_) => const Center(
-            child: CircularProgressIndicator(color: ScholarColors.accent),
+          documentLoaderBuilder: (_) => Center(
+            child: CircularProgressIndicator(color: palette.accent),
           ),
-          pageLoaderBuilder: (_) => const Center(
-            child: CircularProgressIndicator(color: ScholarColors.accent),
+          pageLoaderBuilder: (_) => Center(
+            child: CircularProgressIndicator(color: palette.accent),
           ),
           errorBuilder: (_, error) => Center(
             child: Padding(
@@ -108,12 +109,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: ScholarColors.statusRevision),
+                  Icon(Icons.error_outline, size: 48, color: palette.statusRevision),
                   const SizedBox(height: 16),
                   Text(
                     'Could not open this PDF.\n$error',
                     textAlign: TextAlign.center,
-                    style: ScholarStyles.sans(color: ScholarColors.textSecondary),
+                    style: ScholarStyles.sans(color: palette.textSecondary),
                   ),
                 ],
               ),

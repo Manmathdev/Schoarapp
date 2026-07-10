@@ -5,6 +5,8 @@ import '../theme.dart';
 /// Glass-morphism card matching the website's `.glass` utility class, with
 /// slightly boosted depth cues (stronger shadow, inner highlight) since the
 /// subtle web version reads as flat on a small, brighter phone screen.
+/// Colors resolve from the current theme (light or dark) via context, so
+/// this card automatically adapts when the user switches modes.
 class GlassCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -39,15 +41,18 @@ class _GlassCardState extends State<GlassCard> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final card = Container(
       width: widget.width,
       height: widget.height,
       margin: widget.margin,
       decoration: BoxDecoration(
-        color: ScholarColors.glassBg,
+        color: palette.glassBg,
         borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: Border.all(color: ScholarColors.glassBorder),
-        boxShadow: ScholarTokens.elevation3,
+        border: Border.all(color: palette.glassBorder),
+        boxShadow: ScholarTokens.elevation3(palette.shadowColor, isDark: isDark),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -64,7 +69,7 @@ class _GlassCardState extends State<GlassCard> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withOpacity(0.10),
+                      Colors.white.withOpacity(isDark ? 0.05 : 0.10),
                       Colors.white.withOpacity(0.0),
                     ],
                     stops: const [0.0, 0.3],
@@ -81,11 +86,11 @@ class _GlassCardState extends State<GlassCard> {
               right: 0,
               child: Container(
                 height: 1,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      Color(0x80FFFFFF),
+                      palette.glassShine,
                       Colors.transparent,
                     ],
                   ),
@@ -110,8 +115,8 @@ class _GlassCardState extends State<GlassCard> {
         borderRadius: BorderRadius.circular(widget.borderRadius),
         onTap: widget.onTap,
         onHighlightChanged: _setPressed,
-        splashColor: ScholarColors.accentSoft,
-        highlightColor: ScholarColors.accentSoft,
+        splashColor: palette.accentSoft,
+        highlightColor: palette.accentSoft,
         child: AnimatedScale(
           scale: _pressed ? 0.98 : 1.0,
           duration: ScholarTokens.motionFast,
@@ -137,12 +142,14 @@ class GlassCardSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: ScholarColors.white25,
+        color: palette.surfaceOverlay25,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: ScholarColors.white30),
-        boxShadow: ScholarTokens.elevation1,
+        border: Border.all(color: palette.surfaceOverlay30),
+        boxShadow: ScholarTokens.elevation1(palette.shadowColor, isDark: isDark),
       ),
       child: Padding(
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 11),

@@ -23,6 +23,11 @@ class _DashboardPageState extends State<DashboardPage> {
   int _remainingChapters = 0;
   int _daysUntilExam = 0;
 
+  // Set once per build() call; helper methods below read this rather than
+  // each calling Theme.of(context) independently, since they're all
+  // invoked synchronously within the same build pass.
+  late ScholarPalette _palette;
+
   final List<TextEditingController> _controllers =
       List.generate(5, (_) => TextEditingController());
 
@@ -89,6 +94,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = context.palette;
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -110,8 +116,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: ScholarColors.accent),
+      return Center(
+        child: CircularProgressIndicator(color: _palette.accent),
       );
     }
     if (_errorMessage != null) {
@@ -121,12 +127,12 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: ScholarColors.statusRevision),
+              Icon(Icons.error_outline, size: 48, color: _palette.statusRevision),
               const SizedBox(height: 16),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: ScholarStyles.sans(color: ScholarColors.textSecondary),
+                style: ScholarStyles.sans(color: _palette.textSecondary),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -139,7 +145,7 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
     return RefreshIndicator(
-      color: ScholarColors.accent,
+      color: _palette.accent,
       onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -167,7 +173,7 @@ class _DashboardPageState extends State<DashboardPage> {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 4,
-              color: ScholarColors.accent,
+              color: _palette.accent,
             ),
           ),
           const SizedBox(height: 16),
@@ -179,6 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
               fontWeight: FontWeight.w500,
               letterSpacing: -0.03,
               height: 1.1,
+              color: _palette.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -190,7 +197,7 @@ class _DashboardPageState extends State<DashboardPage> {
               style: ScholarStyles.sans(
                 fontSize: 16,
                 fontWeight: FontWeight.w300,
-                color: ScholarColors.textSecondary,
+                color: _palette.textSecondary,
               ),
             ),
           ),
@@ -198,7 +205,7 @@ class _DashboardPageState extends State<DashboardPage> {
           Container(
             width: 40,
             height: 2,
-            color: ScholarColors.accent,
+            color: _palette.accent,
           ),
         ],
       ),
@@ -242,7 +249,7 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           Text(
             "Today's Objectives",
-            style: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.01),
+            style: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: _palette.textPrimary),
           ),
           const SizedBox(height: 28),
           ...List.generate(5, (i) {
@@ -264,7 +271,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             child: Checkbox(
                               value: task.done,
                               onChanged: (v) => _onDailyTaskChanged(i, done: v),
-                              activeColor: ScholarColors.accent,
+                              activeColor: _palette.accent,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                             ),
                           ),
@@ -279,7 +286,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         style: ScholarStyles.sans(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
-                          color: task.done ? ScholarColors.textMuted : ScholarColors.textPrimary,
+                          color: task.done ? _palette.textMuted : _palette.textPrimary,
                           decoration: task.done ? TextDecoration.lineThrough : TextDecoration.none,
                         ),
                         decoration: InputDecoration(
@@ -287,7 +294,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           hintStyle: ScholarStyles.sans(
                             fontSize: 15,
                             fontWeight: FontWeight.w300,
-                            color: ScholarColors.textMuted,
+                            color: _palette.textMuted,
                             fontStyle: FontStyle.italic,
                           ),
                           border: InputBorder.none,
@@ -314,7 +321,7 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           Text(
             'The Horizon',
-            style: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.01),
+            style: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: _palette.textPrimary),
           ),
           const SizedBox(height: 28),
           _buildCountdownSection(
@@ -328,14 +335,14 @@ class _DashboardPageState extends State<DashboardPage> {
             light: true,
           ),
           const SizedBox(height: 24),
-          Divider(color: Colors.black.withOpacity(0.04)),
+          Divider(color: _palette.textMuted.withOpacity(0.15)),
           const SizedBox(height: 24),
           Text(
             '\u201cDiscipline is simply choosing between what you want now and what you want most.\u201d',
             style: ScholarStyles.serif(
               fontSize: 15,
               fontStyle: FontStyle.italic,
-              color: ScholarColors.textMuted,
+              color: _palette.textMuted,
               height: 1.7,
             ),
           ),
@@ -355,7 +362,7 @@ class _DashboardPageState extends State<DashboardPage> {
             fontWeight: FontWeight.w500,
             letterSpacing: -0.03,
             height: 1,
-            color: light ? ScholarColors.textPrimary : ScholarColors.accent,
+            color: light ? _palette.textPrimary : _palette.accent,
           ),
         ),
         const SizedBox(height: 4),
@@ -365,7 +372,7 @@ class _DashboardPageState extends State<DashboardPage> {
             fontSize: 11,
             fontWeight: FontWeight.w500,
             letterSpacing: 2.5,
-            color: ScholarColors.textSecondary,
+            color: _palette.textSecondary,
           ),
         ),
       ],

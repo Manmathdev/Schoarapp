@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
 
 /// Ambient background orbs, scaled relative to the device's own screen size
 /// rather than the website's fixed desktop pixel values. The original
@@ -38,22 +39,28 @@ class BackgroundOrbs extends StatelessWidget {
   Widget build(BuildContext context) {
     final pair = _config[page] ?? _config['dashboard']!;
     final size = MediaQuery.of(context).size;
+    final palette = context.palette;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Base the orb scale on the larger of width/height so it reads
     // consistently across phones, tablets, and foldables.
     final base = size.width > size.height ? size.width : size.width;
+    // Dark backgrounds need less glow intensity to avoid looking washed
+    // out against the charcoal surface, since less contrast is needed to
+    // register a warm accent glow on a dark base than on a light one.
+    final intensity = isDark ? 0.6 : 1.0;
 
     return IgnorePointer(
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          _buildOrb(pair.primary, base, size),
-          _buildOrb(pair.secondary, base, size),
+          _buildOrb(pair.primary, base, size, palette.accent, intensity),
+          _buildOrb(pair.secondary, base, size, palette.accent, intensity),
         ],
       ),
     );
   }
 
-  Widget _buildOrb(_Orb orb, double base, Size screenSize) {
+  Widget _buildOrb(_Orb orb, double base, Size screenSize, Color accent, double intensity) {
     final diameter = base * orb.sizeFactor;
     return Positioned(
       top: orb.top != null ? screenSize.height * orb.top! : null,
@@ -67,8 +74,8 @@ class BackgroundOrbs extends StatelessWidget {
           shape: BoxShape.circle,
           gradient: RadialGradient(
             colors: [
-              Color.fromRGBO(179, 145, 110, orb.opacity),
-              Color.fromRGBO(200, 170, 140, orb.opacity * 0.4),
+              accent.withOpacity(orb.opacity * intensity),
+              accent.withOpacity(orb.opacity * 0.4 * intensity),
               Colors.transparent,
             ],
             stops: const [0.0, 0.4, 0.75],

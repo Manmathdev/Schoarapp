@@ -49,6 +49,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Scaffold(
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: ClipRect(
@@ -56,8 +57,8 @@ class _AppShellState extends State<AppShell> {
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: NavigationBarTheme(
             data: NavigationBarThemeData(
-              backgroundColor: ScholarColors.glassBg,
-              indicatorColor: ScholarColors.accentSoft,
+              backgroundColor: palette.glassBg,
+              indicatorColor: palette.accentSoft,
               surfaceTintColor: Colors.transparent,
               height: ScholarTokens.minTouchTarget + 18,
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -65,20 +66,20 @@ class _AppShellState extends State<AppShell> {
                 return ScholarStyles.sans(
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? ScholarColors.accent : ScholarColors.textMuted,
+                  color: isSelected ? palette.accent : palette.textMuted,
                 );
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 final isSelected = states.contains(WidgetState.selected);
                 return IconThemeData(
-                  color: isSelected ? ScholarColors.accent : ScholarColors.textMuted,
+                  color: isSelected ? palette.accent : palette.textMuted,
                   size: 22,
                 );
               }),
             ),
             child: Container(
               decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: ScholarColors.glassBorder)),
+                border: Border(top: BorderSide(color: palette.glassBorder)),
               ),
               child: NavigationBar(
                 selectedIndex: _index,

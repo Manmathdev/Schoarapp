@@ -7,11 +7,13 @@ class ScholarFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final year = DateTime.now().year.toString();
+    final palette = context.palette;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 0),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.04)),
+          top: BorderSide(color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04)),
         ),
       ),
       child: Center(
@@ -21,7 +23,7 @@ class ScholarFooter extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.w500,
             letterSpacing: 2.5,
-            color: ScholarColors.textMuted,
+            color: palette.textMuted,
           ),
           textAlign: TextAlign.center,
         ),

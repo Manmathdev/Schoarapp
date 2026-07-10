@@ -13,6 +13,7 @@ class ArchivePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final catalog = PyqCatalog.bySubject;
+    final palette = context.palette;
 
     return Scaffold(
       body: SafeArea(
@@ -21,7 +22,7 @@ class ArchivePage extends StatelessWidget {
             const BackgroundOrbs(page: 'archive'),
             Column(
               children: [
-                _buildTopBar(context),
+                _buildTopBar(context, palette),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Padding(
@@ -29,9 +30,9 @@ class ArchivePage extends StatelessWidget {
                       child: Column(
                         children: [
                           const SizedBox(height: 24),
-                          _buildArchiveHeader(),
+                          _buildArchiveHeader(palette),
                           const SizedBox(height: 48),
-                          _buildArchiveGrid(context, catalog),
+                          _buildArchiveGrid(context, catalog, palette),
                           const SizedBox(height: 32),
                           const ScholarFooter(),
                           const SizedBox(height: 16),
@@ -48,13 +49,13 @@ class ArchivePage extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar(BuildContext context, ScholarPalette palette) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_new, size: 18, color: ScholarColors.accent),
+            icon: Icon(Icons.arrow_back_ios_new, size: 18, color: palette.accent),
             tooltip: 'Back to Resources',
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -64,7 +65,7 @@ class ArchivePage extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 2.5,
-              color: ScholarColors.accent,
+              color: palette.accent,
             ),
           ),
         ],
@@ -72,34 +73,34 @@ class ArchivePage extends StatelessWidget {
     );
   }
 
-  Widget _buildArchiveHeader() {
+  Widget _buildArchiveHeader(ScholarPalette palette) {
     return Column(
       children: [
         Text(
           'THE REGISTRY',
-          style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: ScholarColors.accent),
+          style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: palette.accent),
         ),
         const SizedBox(height: 16),
         Text(
           'The Archive',
           textAlign: TextAlign.center,
-          style: ScholarStyles.serif(fontSize: 48, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1),
+          style: ScholarStyles.serif(fontSize: 48, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: palette.textPrimary),
         ),
         const SizedBox(height: 12),
         Text(
           'A curated collection of past challenges.',
           textAlign: TextAlign.center,
-          style: ScholarStyles.serif(fontSize: 16, fontStyle: FontStyle.italic, color: ScholarColors.textSecondary),
+          style: ScholarStyles.serif(fontSize: 16, fontStyle: FontStyle.italic, color: palette.textSecondary),
         ),
       ],
     );
   }
 
-  Widget _buildArchiveGrid(BuildContext context, Map<String, List<PyqEntry>> catalog) {
+  Widget _buildArchiveGrid(BuildContext context, Map<String, List<PyqEntry>> catalog, ScholarPalette palette) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
-        final blocks = catalog.entries.map((e) => _buildSubjectBlock(context, e.key, e.value)).toList();
+        final blocks = catalog.entries.map((e) => _buildSubjectBlock(context, e.key, e.value, palette)).toList();
         if (isWide) {
           return Wrap(
             spacing: 24,
@@ -116,14 +117,14 @@ class ArchivePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSubjectBlock(BuildContext context, String subject, List<PyqEntry> entries) {
+  Widget _buildSubjectBlock(BuildContext context, String subject, List<PyqEntry> entries, ScholarPalette palette) {
     return GlassCard(
       padding: const EdgeInsets.all(28),
       borderRadius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(subject, style: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.01)),
+          Text(subject, style: ScholarStyles.serif(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.01, color: palette.textPrimary)),
           const SizedBox(height: 20),
           ...entries.map((entry) {
             return Padding(
@@ -152,21 +153,21 @@ class ArchivePage extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                       decoration: BoxDecoration(
-                        color: ScholarColors.white25,
+                        color: palette.surfaceOverlay25,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(entry.year.toString(), style: ScholarStyles.sans(fontSize: 14, fontWeight: FontWeight.w500)),
+                          Text(entry.year.toString(), style: ScholarStyles.sans(fontSize: 14, fontWeight: FontWeight.w500, color: palette.textPrimary)),
                           Row(
                             children: [
                               Text(
                                 'VIEW PDF',
-                                style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 2, color: ScholarColors.accent),
+                                style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 2, color: palette.accent),
                               ),
                               const SizedBox(width: 4),
-                              Icon(Icons.chevron_right, size: 14, color: ScholarColors.accent),
+                              Icon(Icons.chevron_right, size: 14, color: palette.accent),
                             ],
                           ),
                         ],

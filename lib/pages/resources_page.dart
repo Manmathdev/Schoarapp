@@ -24,6 +24,11 @@ class _ResourcesPageState extends State<ResourcesPage> {
   late List<Resource> _resources;
   String _currentFilter = 'all';
 
+  // Set once per build() call; helper methods below read this rather than
+  // each calling Theme.of(context) independently, since they're all
+  // invoked synchronously within the same build pass.
+  late ScholarPalette _palette;
+
   final _titleController = TextEditingController();
   final _urlController = TextEditingController();
   String _selectedSubject = 'Physics';
@@ -171,18 +176,19 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   Color _getSubjectColor(String subject) {
     switch (subject) {
-      case 'Physics': return ScholarColors.physics;
-      case 'Chemistry': return ScholarColors.chemistry;
-      case 'Mathematics': return ScholarColors.mathematics;
-      case 'English': return ScholarColors.english;
-      case 'IT': return ScholarColors.it;
-      case 'Sanskrit': return ScholarColors.sanskrit;
-      default: return ScholarColors.textMuted;
+      case 'Physics': return _palette.physics;
+      case 'Chemistry': return _palette.chemistry;
+      case 'Mathematics': return _palette.mathematics;
+      case 'English': return _palette.english;
+      case 'IT': return _palette.it;
+      case 'Sanskrit': return _palette.sanskrit;
+      default: return _palette.textMuted;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    _palette = context.palette;
     final filtered = _resources.where((r) {
       if (_currentFilter == 'all') return true;
       return r.subject == _currentFilter;
@@ -207,7 +213,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   Widget _buildBody(List<Resource> filtered) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: ScholarColors.accent));
+      return Center(child: CircularProgressIndicator(color: _palette.accent));
     }
     if (_errorMessage != null) {
       return Center(
@@ -216,9 +222,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: ScholarColors.statusRevision),
+              Icon(Icons.error_outline, size: 48, color: _palette.statusRevision),
               const SizedBox(height: 16),
-              Text(_errorMessage!, textAlign: TextAlign.center, style: ScholarStyles.sans(color: ScholarColors.textSecondary)),
+              Text(_errorMessage!, textAlign: TextAlign.center, style: ScholarStyles.sans(color: _palette.textSecondary)),
               const SizedBox(height: 24),
               ElevatedButton(onPressed: _loadResources, child: const Text('Retry')),
             ],
@@ -227,7 +233,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
       );
     }
     return RefreshIndicator(
-      color: ScholarColors.accent,
+      color: _palette.accent,
       onRefresh: _loadResources,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -249,11 +255,11 @@ class _ResourcesPageState extends State<ResourcesPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          Text('LIBRARY', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: ScholarColors.accent)),
+          Text('LIBRARY', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 4, color: _palette.accent)),
           const SizedBox(height: 12),
-          Text('Digital Library', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1)),
+          Text('Digital Library', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 56, fontWeight: FontWeight.w500, letterSpacing: -0.03, height: 1.1, color: _palette.textPrimary)),
           const SizedBox(height: 8),
-          Text('Curate your study materials. Find what you need, instantly.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: ScholarColors.textSecondary)),
+          Text('Curate your study materials. Find what you need, instantly.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 16, fontWeight: FontWeight.w300, color: _palette.textSecondary)),
         ],
       ),
     );
@@ -304,13 +310,13 @@ class _ResourcesPageState extends State<ResourcesPage> {
   Widget _buildMobileFilterChips() {
     final filters = <(String, String, Color?)>[
       ('All Resources', 'all', null),
-      ('Physics', 'Physics', ScholarColors.physics),
-      ('Chemistry', 'Chemistry', ScholarColors.chemistry),
-      ('Mathematics', 'Mathematics', ScholarColors.mathematics),
-      ('English', 'English', ScholarColors.english),
-      ('IT', 'IT', ScholarColors.it),
-      ('Sanskrit', 'Sanskrit', ScholarColors.sanskrit),
-      ('General', 'General', ScholarColors.general),
+      ('Physics', 'Physics', _palette.physics),
+      ('Chemistry', 'Chemistry', _palette.chemistry),
+      ('Mathematics', 'Mathematics', _palette.mathematics),
+      ('English', 'English', _palette.english),
+      ('IT', 'IT', _palette.it),
+      ('Sanskrit', 'Sanskrit', _palette.sanskrit),
+      ('General', 'General', _palette.general),
     ];
     return SizedBox(
       height: ScholarTokens.minTouchTarget,
@@ -334,10 +340,10 @@ class _ResourcesPageState extends State<ResourcesPage> {
                 height: ScholarTokens.minTouchTarget,
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 decoration: BoxDecoration(
-                  color: isActive ? ScholarColors.accent : ScholarColors.glassBg,
+                  color: isActive ? _palette.accent : _palette.glassBg,
                   borderRadius: BorderRadius.circular(50),
                   border: Border.all(
-                    color: isActive ? ScholarColors.accent : ScholarColors.glassBorder,
+                    color: isActive ? _palette.accent : _palette.glassBorder,
                     width: isActive ? 1.5 : 1,
                   ),
                 ),
@@ -347,7 +353,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     style: ScholarStyles.sans(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isActive ? Colors.white : (color ?? ScholarColors.textSecondary),
+                      color: isActive
+                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white)
+                          : (color ?? _palette.textSecondary),
                     ),
                   ),
                 ),
@@ -368,9 +376,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
           childrenPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          title: Text('Save a Link', style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600)),
-          iconColor: ScholarColors.accent,
-          collapsedIconColor: ScholarColors.textMuted,
+          title: Text('Save a Link', style: ScholarStyles.serif(fontSize: 17, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
+          iconColor: _palette.accent,
+          collapsedIconColor: _palette.textMuted,
           children: [
             _buildFormField('Resource Title', _titleController, hint: 'e.g., Physics PYQ Playlist'),
             const SizedBox(height: 16),
@@ -385,15 +393,15 @@ class _ResourcesPageState extends State<ResourcesPage> {
               child: ElevatedButton(
                 onPressed: _addResource,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: ScholarColors.accentSoft,
-                  foregroundColor: ScholarColors.accent,
+                  backgroundColor: _palette.accentSoft,
+                  foregroundColor: _palette.accent,
                   elevation: 0,
-                  side: BorderSide(color: ScholarColors.accent),
+                  side: BorderSide(color: _palette.accent),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   minimumSize: const Size(0, ScholarTokens.minTouchTarget),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2)),
+                child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2, color: _palette.accent)),
               ),
             ),
           ],
@@ -409,27 +417,27 @@ class _ResourcesPageState extends State<ResourcesPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Filter Library', style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600)),
+          Text('Filter Library', style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
           const SizedBox(height: 16),
           _buildFilterItem('All Resources', 'all'),
           const SizedBox(height: 8),
-          _buildFilterItem('Physics', 'Physics', color: ScholarColors.physics),
+          _buildFilterItem('Physics', 'Physics', color: _palette.physics),
           const SizedBox(height: 8),
-          _buildFilterItem('Chemistry', 'Chemistry', color: ScholarColors.chemistry),
+          _buildFilterItem('Chemistry', 'Chemistry', color: _palette.chemistry),
           const SizedBox(height: 8),
-          _buildFilterItem('Mathematics', 'Mathematics', color: ScholarColors.mathematics),
+          _buildFilterItem('Mathematics', 'Mathematics', color: _palette.mathematics),
           const SizedBox(height: 8),
-          _buildFilterItem('English', 'English', color: ScholarColors.english),
+          _buildFilterItem('English', 'English', color: _palette.english),
           const SizedBox(height: 8),
-          _buildFilterItem('IT', 'IT', color: ScholarColors.it),
+          _buildFilterItem('IT', 'IT', color: _palette.it),
           const SizedBox(height: 8),
-          _buildFilterItem('Sanskrit', 'Sanskrit', color: ScholarColors.sanskrit),
+          _buildFilterItem('Sanskrit', 'Sanskrit', color: _palette.sanskrit),
           const SizedBox(height: 8),
-          _buildFilterItem('General', 'General', color: ScholarColors.general),
+          _buildFilterItem('General', 'General', color: _palette.general),
           const SizedBox(height: 24),
-          Divider(color: Colors.black.withOpacity(0.04)),
+          Divider(color: _palette.textMuted.withOpacity(0.15)),
           const SizedBox(height: 24),
-          Text('Save a Link', style: ScholarStyles.serif(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text('Save a Link', style: ScholarStyles.serif(fontSize: 16, fontWeight: FontWeight.w600, color: _palette.textPrimary)),
           const SizedBox(height: 16),
           _buildFormField('Resource Title', _titleController, hint: 'e.g., Physics PYQ Playlist'),
           const SizedBox(height: 16),
@@ -444,15 +452,15 @@ class _ResourcesPageState extends State<ResourcesPage> {
             child: ElevatedButton(
               onPressed: _addResource,
               style: ElevatedButton.styleFrom(
-                backgroundColor: ScholarColors.accentSoft,
-                foregroundColor: ScholarColors.accent,
+                backgroundColor: _palette.accentSoft,
+                foregroundColor: _palette.accent,
                 elevation: 0,
-                side: BorderSide(color: ScholarColors.accent),
+                side: BorderSide(color: _palette.accent),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 minimumSize: const Size(0, ScholarTokens.minTouchTarget),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2)),
+              child: Text('Save Resource', style: ScholarStyles.sans(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 2, color: _palette.accent)),
             ),
           ),
         ],
@@ -473,7 +481,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: isActive ? ScholarColors.white30 : ScholarColors.glassBg,
+            color: isActive ? _palette.surfaceOverlay30 : _palette.glassBg,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -481,7 +489,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
             style: ScholarStyles.sans(
               fontSize: 13,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              color: color ?? (isActive ? ScholarColors.textPrimary : ScholarColors.textSecondary),
+              color: color ?? (isActive ? _palette.textPrimary : _palette.textSecondary),
             ),
           ),
         ),
@@ -493,21 +501,21 @@ class _ResourcesPageState extends State<ResourcesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: ScholarColors.textMuted)),
+        Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: _palette.textMuted)),
         const SizedBox(height: 4),
         TextField(
           controller: controller,
+          style: ScholarStyles.sans(fontSize: 13, color: _palette.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textMuted, fontStyle: FontStyle.italic),
+            hintStyle: ScholarStyles.sans(fontSize: 13, color: _palette.textMuted, fontStyle: FontStyle.italic),
             filled: true,
-            fillColor: ScholarColors.white40,
+            fillColor: _palette.surfaceOverlay40,
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.black.withOpacity(0.05))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.black.withOpacity(0.05))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: ScholarColors.accent)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.accent)),
           ),
-          style: ScholarStyles.sans(fontSize: 13),
         ),
       ],
     );
@@ -517,28 +525,28 @@ class _ResourcesPageState extends State<ResourcesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: ScholarColors.textMuted)),
+        Text(label.toUpperCase(), style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5, color: _palette.textMuted)),
         const SizedBox(height: 4),
         DropdownButtonFormField<String>(
           value: currentValue,
           items: options
               .map((o) => DropdownMenuItem(
                     value: o,
-                    child: Text(o, style: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textPrimary)),
+                    child: Text(o, style: ScholarStyles.sans(fontSize: 13, color: _palette.textPrimary)),
                   ))
               .toList(),
           onChanged: onChanged,
-          icon: Icon(Icons.keyboard_arrow_down, color: ScholarColors.textMuted, size: 20),
-          dropdownColor: ScholarColors.bgBase,
+          icon: Icon(Icons.keyboard_arrow_down, color: _palette.textMuted, size: 20),
+          dropdownColor: _palette.bgBase,
           borderRadius: BorderRadius.circular(14),
-          style: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textPrimary),
+          style: ScholarStyles.sans(fontSize: 13, color: _palette.textPrimary),
           decoration: InputDecoration(
             filled: true,
-            fillColor: ScholarColors.white40,
+            fillColor: _palette.surfaceOverlay40,
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.black.withOpacity(0.05))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.black.withOpacity(0.05))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: ScholarColors.accent)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.textMuted.withOpacity(0.15))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _palette.accent)),
           ),
         ),
       ],
@@ -553,9 +561,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
         child: Center(
           child: Column(
             children: [
-              Text('No resources saved yet.', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 19, color: ScholarColors.textMuted)),
+              Text('No resources saved yet.', textAlign: TextAlign.center, style: ScholarStyles.serif(fontSize: 19, color: _palette.textMuted)),
               const SizedBox(height: 8),
-              Text('Use the form to add a link.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 13, color: ScholarColors.textMuted)),
+              Text('Use the form to add a link.', textAlign: TextAlign.center, style: ScholarStyles.sans(fontSize: 13, color: _palette.textMuted)),
             ],
           ),
         ),
@@ -582,15 +590,15 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     Text(r.subject, style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: tagColor)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.04), borderRadius: BorderRadius.circular(50)),
-                      child: Text(r.type.toUpperCase(), style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: ScholarColors.textMuted)),
+                      decoration: BoxDecoration(color: _palette.textMuted.withOpacity(0.10), borderRadius: BorderRadius.circular(50)),
+                      child: Text(r.type.toUpperCase(), style: ScholarStyles.sans(fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _palette.textMuted)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(r.title, style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, height: 1.3)),
+                Text(r.title, style: ScholarStyles.serif(fontSize: 19, fontWeight: FontWeight.w600, height: 1.3, color: _palette.textPrimary)),
                 const SizedBox(height: 16),
-                Divider(color: Colors.black.withOpacity(0.04)),
+                Divider(color: _palette.textMuted.withOpacity(0.12)),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -598,8 +606,8 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     OutlinedButton(
                       onPressed: () => _openLink(r.url),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: ScholarColors.textSecondary,
-                        side: BorderSide(color: Colors.black.withOpacity(0.08)),
+                        foregroundColor: _palette.textSecondary,
+                        side: BorderSide(color: _palette.textMuted.withOpacity(0.2)),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         minimumSize: const Size(0, ScholarTokens.minTouchTarget),
                         tapTargetSize: MaterialTapTargetSize.padded,
@@ -607,7 +615,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
                       ),
                       child: Text(
                         r.url == '/archive' ? 'Open Archive' : 'Open Link',
-                        style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5),
+                        style: ScholarStyles.sans(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: _palette.textSecondary),
                       ),
                     ),
                     Semantics(
@@ -616,12 +624,12 @@ class _ResourcesPageState extends State<ResourcesPage> {
                       child: TextButton(
                         onPressed: () => _deleteResource(r.id),
                         style: TextButton.styleFrom(
-                          foregroundColor: ScholarColors.textMuted,
+                          foregroundColor: _palette.textMuted,
                           minimumSize: const Size(0, ScholarTokens.minTouchTarget),
                           tapTargetSize: MaterialTapTargetSize.padded,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
-                        child: Text('Remove', style: ScholarStyles.sans(fontSize: 11, color: ScholarColors.textMuted, decoration: TextDecoration.underline)),
+                        child: Text('Remove', style: ScholarStyles.sans(fontSize: 11, color: _palette.textMuted, decoration: TextDecoration.underline)),
                       ),
                     ),
                   ],
