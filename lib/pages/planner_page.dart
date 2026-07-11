@@ -161,6 +161,7 @@ class _PlannerPageState extends State<PlannerPage> {
             const SizedBox(height: 24),
             _buildLayout(),
             const ScholarFooter(),
+            const SizedBox(height: 24),
           ],
         ),
       ),

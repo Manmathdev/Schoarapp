@@ -210,6 +210,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
             const SizedBox(height: 24),
             _buildLayout(filtered),
             const ScholarFooter(),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -451,56 +452,68 @@ class _ResourcesPageState extends State<ResourcesPage> {
     }
 
     final reversed = resources.reversed.toList();
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: reversed.map((r) {
-        final tagColor = _getSubjectColor(r.subject);
-        return SizedBox(
-          width: 300,
-          child: GlassCard(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        const spacing = 16.0;
+        const minCardWidth = 300.0;
+        final columns = (availableWidth / (minCardWidth + spacing)).floor().clamp(1, 4);
+        final cardWidth = columns == 1 ? availableWidth : (availableWidth - spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: reversed.map((r) => _buildResourceCard(theme, r, cardWidth)).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildResourceCard(ThemeData theme, Resource r, double cardWidth) {
+    final tagColor = _getSubjectColor(r.subject);
+    return SizedBox(
+      width: cardWidth,
+      child: GlassCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(r.subject, style: theme.textTheme.labelSmall?.copyWith(color: tagColor)),
-                    Chip(
-                      label: Text(r.type.toUpperCase(), style: theme.textTheme.labelSmall),
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(r.title, style: theme.textTheme.titleMedium),
-                const SizedBox(height: 12),
-                Divider(color: theme.colorScheme.outlineVariant),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => _openLink(r.url),
-                      child: Text(r.url == '/archive' ? 'Open Archive' : 'Open Link'),
-                    ),
-                    Semantics(
-                      button: true,
-                      label: 'Remove ${r.title} from resources',
-                      child: TextButton(
-                        onPressed: () => _deleteResource(r.id),
-                        child: const Text('Remove'),
-                      ),
-                    ),
-                  ],
+                Text(r.subject, style: theme.textTheme.labelSmall?.copyWith(color: tagColor)),
+                Chip(
+                  label: Text(r.type.toUpperCase(), style: theme.textTheme.labelSmall),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
                 ),
               ],
             ),
-          ),
-        );
-      }).toList(),
+            const SizedBox(height: 6),
+            Text(r.title, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Divider(color: theme.colorScheme.outlineVariant),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _openLink(r.url),
+                  child: Text(r.url == '/archive' ? 'Open Archive' : 'Open Link'),
+                ),
+                Semantics(
+                  button: true,
+                  label: 'Remove ${r.title} from resources',
+                  child: TextButton(
+                    onPressed: () => _deleteResource(r.id),
+                    child: const Text('Remove'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -29,7 +29,7 @@ class ArchivePage extends StatelessWidget {
                 _buildArchiveGrid(context, catalog),
                 const SizedBox(height: 24),
                 const ScholarFooter(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
               ],
             ),
           ),

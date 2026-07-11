@@ -127,6 +127,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 32),
             _buildWidgetGrid(),
             const ScholarFooter(),
+            const SizedBox(height: 24),
           ],
         ),
       ),

@@ -199,6 +199,7 @@ class _CurriculumPageState extends State<CurriculumPage> {
             const SizedBox(height: 24),
             _buildLayout(filtered),
             const ScholarFooter(),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -405,69 +406,84 @@ class _CurriculumPageState extends State<CurriculumPage> {
       );
     }
 
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: tasks.map((task) {
-        final isMastered = task.status == 'Mastered';
-        return SizedBox(
-          width: 300,
-          child: GlassCard(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(border: Border(left: BorderSide(color: task.colorValue, width: 3))),
-                  padding: const EdgeInsets.only(left: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(task.subject.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: task.colorValue)),
-                      const SizedBox(height: 4),
-                      Text(task.title, style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _notesControllerFor(task),
-                        onChanged: (v) => _saveNotes(task.id, v),
-                        maxLines: 3,
-                        style: theme.textTheme.bodySmall,
-                        decoration: const InputDecoration(
-                          hintText: 'Add study notes, formulas, or page numbers...',
-                          filled: false,
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Divider(color: theme.colorScheme.outlineVariant),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(task.status.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: _getStatusColor(context, task.status))),
-                    Semantics(
-                      button: true,
-                      label: isMastered ? 'Chapter mastered' : 'Update status, currently ${task.status}',
-                      child: isMastered
-                          ? TonalActionChip(label: 'Done', onTap: () => _cycleStatus(task.id))
-                          : FilledButton.tonal(
-                              onPressed: () => _cycleStatus(task.id),
-                              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
-                              child: const Text('Update Status'),
-                            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // On narrow (phone) widths, a single full-width column reads far
+        // better than a fixed 300px card with wasted margin beside it. On
+        // wider screens, fit as many 300px-ish columns as the space allows.
+        final availableWidth = constraints.maxWidth;
+        const spacing = 16.0;
+        const minCardWidth = 300.0;
+        final columns = (availableWidth / (minCardWidth + spacing)).floor().clamp(1, 4);
+        final cardWidth = columns == 1 ? availableWidth : (availableWidth - spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: tasks.map((task) => _buildTaskCard(theme, task, cardWidth)).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildTaskCard(ThemeData theme, Task task, double cardWidth) {
+    final isMastered = task.status == 'Mastered';
+    return SizedBox(
+      width: cardWidth,
+      child: GlassCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: BoxDecoration(border: Border(left: BorderSide(color: task.colorValue, width: 3))),
+              padding: const EdgeInsets.only(left: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(task.subject.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: task.colorValue)),
+                  const SizedBox(height: 4),
+                  Text(task.title, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _notesControllerFor(task),
+                    onChanged: (v) => _saveNotes(task.id, v),
+                    maxLines: 3,
+                    style: theme.textTheme.bodySmall,
+                    decoration: const InputDecoration(
+                      hintText: 'Add study notes, formulas, or page numbers...',
+                      filled: false,
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Divider(color: theme.colorScheme.outlineVariant),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(task.status.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: _getStatusColor(context, task.status))),
+                Semantics(
+                  button: true,
+                  label: isMastered ? 'Chapter mastered' : 'Update status, currently ${task.status}',
+                  child: isMastered
+                      ? TonalActionChip(label: 'Done', onTap: () => _cycleStatus(task.id))
+                      : FilledButton.tonal(
+                          onPressed: () => _cycleStatus(task.id),
+                          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                          child: const Text('Update Status'),
+                        ),
                 ),
               ],
             ),
-          ),
-        );
-      }).toList(),
+          ],
+        ),
+      ),
     );
   }
 }

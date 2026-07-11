@@ -172,7 +172,7 @@ class ScholarTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colorScheme.surface,
-      fontFamily: 'RobotoFlex',
+      fontFamily: 'Poppins',
       extensions: [subjectColors],
       textTheme: _textTheme(colorScheme),
       appBarTheme: AppBarTheme(
@@ -239,7 +239,7 @@ class ScholarTheme {
   }
 
   /// Material 3's type scale: display, headline, title, body, label — each
-  /// with small/medium/large variants, all in Roboto Flex.
+  /// with small/medium/large variants, all in Poppins.
   static TextTheme _textTheme(ColorScheme colorScheme) {
     final base = TextTheme(
       displayLarge: const TextStyle(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25, height: 1.12),
@@ -258,7 +258,7 @@ class ScholarTheme {
       labelMedium: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5, height: 1.33),
       labelSmall: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5, height: 1.45),
     ).apply(
-      fontFamily: 'RobotoFlex',
+      fontFamily: 'Poppins',
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
     );
