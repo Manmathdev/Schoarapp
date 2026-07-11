@@ -11,7 +11,7 @@ void main() {
     await tester.pumpWidget(const ScholarApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome back.'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
     expect(find.text('Dashboard'), findsOneWidget);
     expect(find.text('Curriculum'), findsOneWidget);
     expect(find.text('Planner'), findsOneWidget);

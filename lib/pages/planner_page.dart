@@ -161,7 +161,6 @@ class _PlannerPageState extends State<PlannerPage> {
             const SizedBox(height: 24),
             _buildLayout(),
             const ScholarFooter(),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -173,31 +172,18 @@ class _PlannerPageState extends State<PlannerPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('ARCHITECT', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
-                    const SizedBox(height: 8),
-                    Text('Weekly Architect', style: theme.textTheme.headlineMedium),
-                    const SizedBox(height: 4),
-                    Text('Design your week. Execute your plan.', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          Text('ARCHITECT', textAlign: TextAlign.center, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
+          const SizedBox(height: 8),
+          Text('Weekly Architect', textAlign: TextAlign.center, style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 4),
+          Text('Design your week. Execute your plan.', textAlign: TextAlign.center, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: _clearWeek,
-              icon: const Icon(Icons.delete_outline, size: 16),
-              label: const Text('Clear Entire Week'),
-            ),
+          OutlinedButton.icon(
+            onPressed: _clearWeek,
+            icon: const Icon(Icons.delete_outline, size: 16),
+            label: const Text('Clear Entire Week'),
           ),
         ],
       ),
@@ -304,50 +290,60 @@ class _PlannerPageState extends State<PlannerPage> {
 
   Widget _buildWeekGrid() {
     final theme = Theme.of(context);
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: List.generate(_daysOfWeek.length, (i) {
-        final day = _daysOfWeek[i];
-        _weeklyPlan.putIfAbsent(day, () => '');
-        final borderColor = context.subjectColors.dayBorderColors[i];
-        return SizedBox(
-          width: 280,
-          height: 250,
-          child: GlassCard(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(border: Border(top: BorderSide(color: borderColor, width: 3))),
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Text(day, style: theme.textTheme.titleLarge),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _dayControllers[day],
-                    onChanged: (v) => _onPlanChanged(day, v),
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    style: theme.textTheme.bodyMedium,
-                    decoration: InputDecoration(
-                      hintText: 'List your goals and tasks for $day',
-                      filled: false,
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        const spacing = 16.0;
+        const minCardWidth = 280.0;
+        final columns = (availableWidth / (minCardWidth + spacing)).floor().clamp(1, 4);
+        final cardWidth = columns == 1 ? availableWidth : (availableWidth - spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: List.generate(_daysOfWeek.length, (i) {
+            final day = _daysOfWeek[i];
+            _weeklyPlan.putIfAbsent(day, () => '');
+            final borderColor = context.subjectColors.dayBorderColors[i];
+            return SizedBox(
+              width: cardWidth,
+              height: 250,
+              child: GlassCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(border: Border(top: BorderSide(color: borderColor, width: 3))),
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Text(day, style: theme.textTheme.titleLarge),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _dayControllers[day],
+                        onChanged: (v) => _onPlanChanged(day, v),
+                        maxLines: null,
+                        expands: true,
+                        textAlignVertical: TextAlignVertical.top,
+                        style: theme.textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          hintText: 'List your goals and tasks for $day',
+                          filled: false,
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          }),
         );
-      }),
+      },
     );
   }
 }

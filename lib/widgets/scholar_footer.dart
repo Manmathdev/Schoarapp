@@ -8,6 +8,7 @@ class ScholarFooter extends StatelessWidget {
     final year = DateTime.now().year.toString();
     final theme = Theme.of(context);
     return Container(
+      margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 0),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),

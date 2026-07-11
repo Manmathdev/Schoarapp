@@ -127,7 +127,6 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 32),
             _buildWidgetGrid(),
             const ScholarFooter(),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -140,14 +139,15 @@ class _DashboardPageState extends State<DashboardPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('CLASS 12 CURRICULUM', style: theme.textTheme.labelMedium?.copyWith(color: colors.primary, letterSpacing: 3)),
+          Text('CLASS 12 CURRICULUM', textAlign: TextAlign.center, style: theme.textTheme.labelMedium?.copyWith(color: colors.primary, letterSpacing: 3)),
           const SizedBox(height: 8),
-          Text('Welcome back.', style: theme.textTheme.headlineLarge),
+          Text('Home', textAlign: TextAlign.center, style: theme.textTheme.headlineLarge),
           const SizedBox(height: 8),
           Text(
             'Focus on the syllabus. Master the fundamentals. Build your future.',
+            textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
           ),
         ],

@@ -29,7 +29,6 @@ class ArchivePage extends StatelessWidget {
                 _buildArchiveGrid(context, catalog),
                 const SizedBox(height: 24),
                 const ScholarFooter(),
-                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -41,13 +40,13 @@ class ArchivePage extends StatelessWidget {
   Widget _buildArchiveHeader(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text('THE REGISTRY', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
+        Text('THE REGISTRY', textAlign: TextAlign.center, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
         const SizedBox(height: 8),
-        Text('The Archive', style: theme.textTheme.headlineMedium),
+        Text('The Archive', textAlign: TextAlign.center, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 4),
-        Text('A curated collection of past challenges.', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        Text('A curated collection of past challenges.', textAlign: TextAlign.center, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       ],
     );
   }

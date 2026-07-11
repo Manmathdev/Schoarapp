@@ -210,7 +210,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
             const SizedBox(height: 24),
             _buildLayout(filtered),
             const ScholarFooter(),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -222,13 +221,13 @@ class _ResourcesPageState extends State<ResourcesPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('LIBRARY', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
+          Text('LIBRARY', textAlign: TextAlign.center, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
           const SizedBox(height: 8),
-          Text('Digital Library', style: theme.textTheme.headlineMedium),
+          Text('Digital Library', textAlign: TextAlign.center, style: theme.textTheme.headlineMedium),
           const SizedBox(height: 4),
-          Text('Curate your study materials. Find what you need, instantly.', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text('Curate your study materials. Find what you need, instantly.', textAlign: TextAlign.center, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ],
       ),
     );

@@ -199,7 +199,6 @@ class _CurriculumPageState extends State<CurriculumPage> {
             const SizedBox(height: 24),
             _buildLayout(filtered),
             const ScholarFooter(),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -211,13 +210,13 @@ class _CurriculumPageState extends State<CurriculumPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('SYLLABUS', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
+          Text('SYLLABUS', textAlign: TextAlign.center, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 3)),
           const SizedBox(height: 8),
-          Text(title, style: theme.textTheme.headlineMedium),
+          Text(title, textAlign: TextAlign.center, style: theme.textTheme.headlineMedium),
           const SizedBox(height: 4),
-          Text(subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(subtitle, textAlign: TextAlign.center, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ],
       ),
     );
